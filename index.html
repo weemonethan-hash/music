@@ -9,11 +9,13 @@
       --bg:#0f1724;
       --card:#0b1220;
       --accent:#6ee7b7;
+      --accent-2:#60a5fa;
       --muted:#9aa4b2;
       --glass: rgba(255,255,255,0.03);
       --glass-2: rgba(255,255,255,0.02);
       --shadow: 0 8px 30px rgba(2,6,23,0.6);
       --radius: 12px;
+      --control-size:44px;
     }
 
     *{box-sizing:border-box}
@@ -40,7 +42,6 @@
       align-items:start;
     }
 
-    /* card */
     .card{
       background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.015));
       border-radius: var(--radius);
@@ -49,7 +50,6 @@
       border: 1px solid rgba(255,255,255,0.03);
     }
 
-    /* left column - player */
     .player{
       display:flex;
       flex-direction:column;
@@ -79,6 +79,7 @@
       color:#072; font-weight:700;
       box-shadow: 0 6px 18px rgba(69,84,245,0.12);
       flex-shrink:0;
+      font-size:14px;
     }
 
     .small{
@@ -102,39 +103,46 @@
 
     .cover .art{
       width:200px; height:200px; border-radius:6px; background:linear-gradient(135deg,#22366f,#1d6b7a); display:grid; place-items:center; color:#fff;
-      font-size:18px; text-align:center; padding:10px;
+      font-size:20px; text-align:center; padding:10px;
     }
 
     .info{
       display:flex; align-items:center; justify-content:space-between; gap:12px;
     }
-    .title{
-      display:flex; gap:12px; align-items:center; min-width:0;
-    }
-    .meta{
-      min-width:0;
-    }
-    .meta h4{
-      margin:0; font-size:18px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-    }
+    .meta{ min-width:0; }
+    .meta h4{ margin:0; font-size:18px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .meta p{ margin:0; font-size:13px; color:var(--muted); margin-top:4px; }
 
-    /* controls */
     .controls{
       display:flex; align-items:center; gap:10px; justify-content:space-between;
     }
     .ctrl-left, .ctrl-right{ display:flex; align-items:center; gap:8px; }
-    button.icon{
-      background:var(--glass); border:0; color:var(--muted); padding:10px; border-radius:10px; cursor:pointer;
+
+    /* icon buttons */
+    .btn {
+      width: var(--control-size);
+      height: var(--control-size);
+      display:grid;
+      place-items:center;
+      background:var(--glass);
+      border:0;
+      color:var(--muted);
+      padding:8px;
+      border-radius:10px;
+      cursor:pointer;
       transition: all .14s ease;
     }
-    button.icon:hover{ transform: translateY(-4px); color:var(--accent); }
+    .btn:hover{ transform: translateY(-4px); color:var(--accent); box-shadow: 0 10px 24px rgba(40,60,120,0.08); }
 
-    button.big{
-      font-size:18px; padding:14px 18px; border-radius:12px; background:linear-gradient(90deg,#6ee7b7,#60a5fa);
-      border:0; color:#062; box-shadow: 0 8px 24px rgba(96,165,250,0.12);
+    .btn.play {
+      width:56px; height:56px;
+      border-radius:12px;
+      background: linear-gradient(90deg,var(--accent),var(--accent-2));
+      color:#042;
+      box-shadow: 0 10px 30px rgba(96,165,250,0.12);
     }
 
+    /* seek */
     .seek{
       display:flex; align-items:center; gap:12px;
       margin-top:8px;
@@ -143,21 +151,28 @@
       height:8px; background:var(--glass-2); flex:1; border-radius:99px; position:relative; cursor:pointer;
     }
     .progress .bar{
-      height:100%; width:0%; background:linear-gradient(90deg,#60a5fa,#6ee7b7); border-radius:inherit;
+      height:100%; width:0%; background:linear-gradient(90deg,var(--accent-2),var(--accent)); border-radius:inherit;
       transition: width .06s linear;
     }
     .time{ font-size:12px; color:var(--muted); width:56px; text-align:right; }
 
+    /* volume */
     .volume{
       display:flex; align-items:center; gap:8px;
+      align-self:flex-end;
+      overflow:visible;
     }
-    input[type=range]{
-      -webkit-appearance:none; height:6px; background:transparent; width:110px;
-    }
-    input[type=range]::-webkit-slider-runnable-track{ height:6px; background:rgba(255,255,255,0.06); border-radius:6px; }
-    input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:linear-gradient(135deg,#fff,#cfe7ff); margin-top:-5px; box-shadow:0 3px 10px rgba(2,6,23,0.5); cursor:pointer; }
 
-    /* playlist */
+    /* custom range styling (uses background fill via JS) */
+    input[type=range]{
+      -webkit-appearance:none; height:8px; background:transparent; width:140px; border-radius:6px; cursor:pointer;
+    }
+    input[type=range]:focus{ outline:none; }
+    input[type=range]::-webkit-slider-runnable-track{ height:8px; background:transparent; border-radius:6px; }
+    input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:linear-gradient(135deg,#fff,#cfe7ff); margin-top:-4px; box-shadow:0 3px 10px rgba(2,6,23,0.5); cursor:pointer; }
+    input[type=range]::-moz-range-thumb{ width:16px; height:16px; border-radius:50%; background:linear-gradient(135deg,#fff,#cfe7ff); box-shadow:0 3px 10px rgba(2,6,23,0.5); cursor:pointer; }
+    input[type=range]::-moz-range-track{ height:8px; background:transparent; border-radius:6px; }
+
     .playlist{
       max-height:620px;
       overflow:auto;
@@ -175,7 +190,6 @@
     .track .name{ flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
     .track .dur{ color:var(--muted); font-size:13px; width:62px; text-align:right; }
 
-    /* footer / small */
     .help{ margin-top:8px; color:var(--muted); font-size:13px; }
 
     @media (max-width:980px){
@@ -197,7 +211,7 @@
       </div>
 
       <div class="cover card" aria-hidden="true">
-        <div class="art" id="coverArt">No track selected</div>
+        <div class="art" id="coverArt">—</div>
       </div>
 
       <div class="info">
@@ -212,17 +226,60 @@
 
       <div class="controls">
         <div class="ctrl-left">
-          <button class="icon" id="shuffleBtn" title="Shuffle">🔀</button>
-          <button class="icon" id="prevBtn" title="Previous">⏮️</button>
-          <button class="big" id="playPauseBtn" title="Play / Pause">▶️</button>
-          <button class="icon" id="nextBtn" title="Next">⏭️</button>
-          <button class="icon" id="repeatBtn" title="Repeat: off">🔁</button>
+          <button class="btn" id="shuffleBtn" aria-label="Shuffle" title="Shuffle">
+            <!-- shuffle SVG -->
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path d="M3 6h2.586a4 4 0 0 1 2.828 1.172L12 11.757" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M21 6v6h-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M3 18h2.586a4 4 0 0 0 2.828-1.172L12 12.243" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M21 18v-6h-6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+
+          <button class="btn" id="prevBtn" aria-label="Previous" title="Previous">
+            <!-- prev SVG -->
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path d="M6 6v12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M18 6L10 12l8 6V6z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+
+          <button class="play" id="playPauseBtn" aria-label="Play / Pause" title="Play / Pause">
+            <!-- play icon inserted/updated by JS -->
+            <svg id="playIcon" width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path d="M5 3v18l15-9L5 3z" fill="white"/>
+            </svg>
+          </button>
+
+          <button class="btn" id="nextBtn" aria-label="Next" title="Next">
+            <!-- next SVG -->
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path d="M18 6v12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M6 6l8 6-8 6V6z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+
+          <button class="btn" id="repeatBtn" aria-label="Repeat" title="Repeat">
+            <!-- repeat SVG -->
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path d="M21 15v4h-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M3 9V5h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M21 5L14 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M3 19l7-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
         </div>
 
         <div class="ctrl-right">
           <div class="volume">
-            <button class="icon" id="muteBtn" title="Mute / Unmute">🔊</button>
-            <input id="volumeRange" type="range" min="0" max="1" step="0.01" value="0.9" />
+            <button class="btn" id="muteBtn" aria-label="Mute / Unmute" title="Mute / Unmute">
+              <!-- volume icon inserted/updated by JS -->
+              <svg id="volumeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M11 5L6 9H2v6h4l5 4V5z" fill="currentColor"/>
+                <path d="M19 8a4 4 0 010 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <input id="volumeRange" type="range" min="0" max="100" step="1" value="90" aria-label="Volume" />
           </div>
         </div>
       </div>
@@ -235,7 +292,7 @@
         <div class="time" id="durationTime">0:00</div>
       </div>
 
-      <div class="help">Keyboard: Space play/pause · ←/→ prev/next · Up/Down volume · S shuffle · R cycle repeat</div>
+      <div class="help">Keyboard: Space play/pause · ←/→ prev/next · ↑/↓ volume · S shuffle · R repeat</div>
 
       <audio id="audio" preload="metadata" style="display:none"></audio>
     </div>
@@ -271,14 +328,17 @@
   const currentTimeEl = document.getElementById('currentTime');
   const durationTimeEl = document.getElementById('durationTime');
   const folderNameEl = document.getElementById('folderName');
+  const volumeIcon = document.getElementById('volumeIcon');
+  const playIcon = document.getElementById('playIcon');
 
   // State
-  let tracks = []; // {file, name, url, duration, size}
+  let tracks = [];
   let currentIndex = -1;
   let shuffle = false;
   let repeatMode = 0; // 0=off,1=all,2=one
-  let order = []; // order of indices when shuffle on
-  let createdObjectURLs = []; // to revoke on reload
+  let order = [];
+  let createdObjectURLs = [];
+  let prevVolumeBeforeMute = parseInt(volumeRange.value, 10) || 90;
 
   // Helpers
   const fmt = s => {
@@ -294,11 +354,43 @@
     return parseFloat((bytes/Math.pow(k,i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  // Icon helpers
+  function setPlayIcon(){
+    playIcon.innerHTML = '<path d="M5 3v18l15-9L5 3z" fill="white"/>';
+    playPauseBtn.title = 'Play';
+    playPauseBtn.setAttribute('aria-pressed', 'false');
+  }
+  function setPauseIcon(){
+    playIcon.innerHTML = '<path d="M6 5h4v14H6zM14 5h4v14h-4z" fill="white"/>';
+    playPauseBtn.title = 'Pause';
+    playPauseBtn.setAttribute('aria-pressed', 'true');
+  }
+
+  function setVolumeIconByValue(val){
+    // val is 0..100
+    const normalized = Number(val);
+    if (audio.muted || normalized === 0) {
+      volumeIcon.innerHTML = '<path d="M11 5L6 9H2v6h4l5 4V5z" fill="currentColor"/><path d="M19 8L15 12l4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>';
+      muteBtn.title = 'Unmute';
+    } else if (normalized < 40) {
+      volumeIcon.innerHTML = '<path d="M11 5L6 9H2v6h4l5 4V5z" fill="currentColor"/>';
+      muteBtn.title = 'Mute';
+    } else {
+      volumeIcon.innerHTML = '<path d="M11 5L6 9H2v6h4l5 4V5z" fill="currentColor"/><path d="M19 8a4 4 0 010 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>';
+      muteBtn.title = 'Mute';
+    }
+  }
+
+  // Volume range background fill update (keeps thumb visually within bounds)
+  function updateRangeBackground(range){
+    const val = (Number(range.value) - Number(range.min)) / (Number(range.max) - Number(range.min)) * 100;
+    range.style.background = `linear-gradient(90deg, var(--accent-2) ${val}%, var(--glass-2) ${val}%)`;
+  }
+
   // UI interactions
   dropZone.addEventListener('click', ()=> folderInput.click());
   folderInput.addEventListener('change', e => handleFiles(Array.from(e.target.files)));
 
-  // Drag & Drop
   ['dragenter','dragover'].forEach(ev => {
     dropZone.addEventListener(ev, (e)=>{ e.preventDefault(); e.stopPropagation(); dropZone.classList.add('dragover'); });
   });
@@ -311,7 +403,6 @@
   });
 
   function handleFiles(fileList){
-    // clear previous URLs
     createdObjectURLs.forEach(u => URL.revokeObjectURL(u));
     createdObjectURLs = [];
     tracks = Array.from(fileList).filter(f => f.name.toLowerCase().endsWith('.mp3'));
@@ -319,14 +410,11 @@
       alert('No mp3 files found in selection.');
       return;
     }
-    // Sort by name (natural-ish)
     tracks.sort((a,b)=> a.name.localeCompare(b.name, undefined, {sensitivity:'base', numeric:true}));
-    // Map into objects with placeholders
     tracks = tracks.map(f => ({ file: f, name: f.name, url: null, duration: null, size: f.size }));
     folderNameEl.textContent = deriveFolderName(fileList);
     playlistEl.innerHTML = '';
     currentIndex = -1;
-    // Preload durations (sequential to reduce load)
     loadDurationsSequential(tracks).then(() => {
       renderPlaylist();
       playTrack(0);
@@ -336,7 +424,6 @@
   function deriveFolderName(files){
     if (!files.length) return 'No folder';
     try {
-      // take first file path and strip filename
       const p = files[0].webkitRelativePath || files[0].name;
       if (p.includes('/')) {
         const seg = p.split('/');
@@ -347,7 +434,6 @@
   }
 
   function loadDurationsSequential(arr){
-    // load metadata one by one
     let i = 0;
     return new Promise((resolve) => {
       (function next(){
@@ -361,11 +447,9 @@
         a.addEventListener('loadedmetadata', ()=> {
           item.duration = a.duration;
           URL.revokeObjectURL(a.src);
-          // keep urls for playing later (we'll recreate when playing)
           i++; next();
         }, {once:true});
         a.addEventListener('error', ()=> {
-          // skip and continue
           item.duration = NaN;
           URL.revokeObjectURL(a.src);
           i++; next();
@@ -395,8 +479,6 @@
     if (!tracks.length) return;
     if (idx < 0 || idx >= tracks.length) return;
     currentIndex = idx;
-    // generate object URL just-in-time to avoid memory pressure
-    // revoke previous audio src if we created it
     if (audio.src) {
       try{ URL.revokeObjectURL(audio.src); } catch(e){}
     }
@@ -405,7 +487,7 @@
     createdObjectURLs.push(url);
     track.url = url;
     audio.src = url;
-    audio.play().catch(()=>{ /* user interaction maybe required */ });
+    audio.play().catch(()=>{});
     updateNowPlaying();
     updateActiveInPlaylist();
   }
@@ -415,7 +497,7 @@
       trackTitle.textContent = '—';
       trackSub.textContent = 'No file loaded';
       trackIndex.textContent = `0 / ${tracks.length}`;
-      coverArt.textContent = 'No track selected';
+      coverArt.textContent = '—';
       durationTimeEl.textContent = '0:00';
       currentTimeEl.textContent = '0:00';
       return;
@@ -426,8 +508,7 @@
     trackIndex.textContent = `${currentIndex+1} / ${tracks.length}`;
     coverArt.textContent = (t.name.split(/\s|[-_.]/).slice(0,4).map(s => s[0]||'').join('') || '♪').toUpperCase();
     durationTimeEl.textContent = isFinite(t.duration) ? fmt(t.duration) : '0:00';
-    // play button -> show pause
-    playPauseBtn.textContent = '⏸️';
+    setPauseIcon();
   }
 
   function updateActiveInPlaylist(){
@@ -438,15 +519,11 @@
 
   // Controls
   playPauseBtn.addEventListener('click', ()=> {
-    if (audio.paused) { audio.play(); playPauseBtn.textContent = '⏸️'; }
-    else { audio.pause(); playPauseBtn.textContent = '▶️'; }
+    if (audio.paused) { audio.play(); setPauseIcon(); }
+    else { audio.pause(); setPlayIcon(); }
   });
-  prevBtn.addEventListener('click', ()=> {
-    playPrevious();
-  });
-  nextBtn.addEventListener('click', ()=> {
-    playNext();
-  });
+  prevBtn.addEventListener('click', ()=> playPrevious());
+  nextBtn.addEventListener('click', ()=> playNext());
 
   shuffleBtn.addEventListener('click', ()=> {
     shuffle = !shuffle;
@@ -459,19 +536,39 @@
     const labels = ['off','all','one'];
     repeatBtn.title = `Repeat: ${labels[repeatMode]}`;
     repeatBtn.style.color = repeatMode ? 'var(--accent)' : '';
-    repeatBtn.textContent = repeatMode === 2 ? '🔂' : '🔁';
   });
 
   muteBtn.addEventListener('click', ()=> {
-    audio.muted = !audio.muted;
-    muteBtn.textContent = audio.muted ? '🔈' : '🔊';
+    if (!audio.muted) {
+      prevVolumeBeforeMute = Number(volumeRange.value);
+      audio.muted = true;
+      volumeRange.value = 0;
+      updateRangeBackground(volumeRange);
+      setVolumeIconByValue(0);
+    } else {
+      audio.muted = false;
+      const restore = prevVolumeBeforeMute || 90;
+      volumeRange.value = restore;
+      audio.volume = restore / 100;
+      updateRangeBackground(volumeRange);
+      setVolumeIconByValue(restore);
+    }
   });
 
+  // volume range uses 0..100 to avoid tiny floating problems and to keep keyboard steps integer
   volumeRange.addEventListener('input', e => {
-    audio.volume = parseFloat(e.target.value);
-    audio.muted = audio.volume === 0;
-    muteBtn.textContent = audio.muted ? '🔈' : '🔊';
+    const val = Number(e.target.value);
+    audio.volume = val / 100;
+    audio.muted = val === 0;
+    if (!audio.muted) prevVolumeBeforeMute = val;
+    updateRangeBackground(volumeRange);
+    setVolumeIconByValue(val);
   });
+
+  // initialize volume UI
+  audio.volume = Number(volumeRange.value) / 100;
+  updateRangeBackground(volumeRange);
+  setVolumeIconByValue(volumeRange.value);
 
   // Audio events
   audio.addEventListener('timeupdate', ()=> {
@@ -485,7 +582,6 @@
 
   audio.addEventListener('ended', ()=> {
     if (repeatMode === 2) {
-      // repeat one
       audio.currentTime = 0;
       audio.play();
       return;
@@ -493,7 +589,6 @@
     playNext();
   });
 
-  // Seek clicking
   progressBar.addEventListener('click', (e) => {
     const rect = progressBar.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -501,15 +596,12 @@
     if (audio.duration) audio.currentTime = pct * audio.duration;
   });
 
-  // Next / Prev logic with shuffle & repeat
   function generateShuffleOrder(){
     order = Array.from(tracks.keys());
-    // Fisher-Yates
     for (let i = order.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [order[i], order[j]] = [order[j], order[i]];
     }
-    // ensure current index is first
     if (currentIndex >= 0) {
       const pos = order.indexOf(currentIndex);
       if (pos > -1) order.splice(pos,1), order.unshift(currentIndex);
@@ -520,17 +612,15 @@
     if (!tracks.length) return;
     if (shuffle) {
       if (!order.length) generateShuffleOrder();
-      // find current pos within order
       let pos = order.indexOf(currentIndex);
       pos = pos === -1 ? 0 : pos + 1;
       if (pos >= order.length) {
         if (repeatMode === 1) pos = 0;
-        else return; // end of shuffled list
+        else return;
       }
       playTrack(order[pos]);
       return;
     }
-    // non-shuffle
     let nxt = currentIndex + 1;
     if (nxt >= tracks.length) {
       if (repeatMode === 1) nxt = 0;
@@ -559,30 +649,36 @@
     playTrack(prev);
   }
 
-  // Keyboard shortcuts
+  // Keyboard shortcuts (arrow up/down adjusts by 5)
   document.addEventListener('keydown', (e) => {
     if (e.code === 'Space') { e.preventDefault(); playPauseBtn.click(); }
     if (e.code === 'ArrowRight') { e.preventDefault(); nextBtn.click(); }
     if (e.code === 'ArrowLeft') { e.preventDefault(); prevBtn.click(); }
-    if (e.code === 'ArrowUp') { e.preventDefault(); volumeRange.value = Math.min(1, parseFloat(volumeRange.value) + 0.05); volumeRange.dispatchEvent(new Event('input')); }
-    if (e.code === 'ArrowDown') { e.preventDefault(); volumeRange.value = Math.max(0, parseFloat(volumeRange.value) - 0.05); volumeRange.dispatchEvent(new Event('input')); }
+    if (e.code === 'ArrowUp') {
+      e.preventDefault();
+      const v = Math.min(100, Number(volumeRange.value) + 5);
+      volumeRange.value = v;
+      volumeRange.dispatchEvent(new Event('input'));
+    }
+    if (e.code === 'ArrowDown') {
+      e.preventDefault();
+      const v = Math.max(0, Number(volumeRange.value) - 5);
+      volumeRange.value = v;
+      volumeRange.dispatchEvent(new Event('input'));
+    }
     if (e.key.toLowerCase() === 's') { shuffleBtn.click(); }
     if (e.key.toLowerCase() === 'r') { repeatBtn.click(); }
   });
 
-  // Cleanup on page unload
+  // Cleanup
   window.addEventListener('beforeunload', ()=> {
     createdObjectURLs.forEach(u => {
       try{ URL.revokeObjectURL(u); } catch(e){}
     });
   });
 
-  // Small accessibility: show play/pause state from audio events
-  audio.addEventListener('play', ()=> playPauseBtn.textContent = '⏸️');
-  audio.addEventListener('pause', ()=> playPauseBtn.textContent = '▶️');
-
-  // Initial volume
-  audio.volume = parseFloat(volumeRange.value);
+  audio.addEventListener('play', ()=> setPauseIcon());
+  audio.addEventListener('pause', ()=> setPlayIcon());
 </script>
 </body>
 </html>
