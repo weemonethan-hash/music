@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Folder MP3 Music Player</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f9; padding: 40px; }
+    #player { margin: 20px 0; }
+    #playlist li { cursor: pointer; margin: 3px 0; }
+    #playlist li.active { font-weight: bold; color: #3498db; }
+    button { margin: 0 7px; }
+  </style>
+</head>
+<body>
+  <h2>Upload Folder of MP3s</h2>
+  <input type="file" id="folderInput" webkitdirectory directory multiple accept=".mp3"/>
+  <div id="player">
+    <audio id="audio" controls style="width: 300px;"></audio>
+    <div>
+      <button onclick="prevTrack()">⏮️ Prev</button>
+      <button onclick="nextTrack()">Next ⏭️</button>
+    </div>
+  </div>
+  <h3>Playlist</h3>
+  <ul id="playlist"></ul>
+
+<script>
+  const input = document.getElementById('folderInput');
+  const audio = document.getElementById('audio');
+  const playlistUI = document.getElementById('playlist');
+  let tracks = [];
+  let currentTrack = 0;
+
+  input.addEventListener('change', function(e) {
+    tracks = Array.from(e.target.files).filter(f => f.name.endsWith('.mp3'));
+    tracks.sort((a, b) => a.name.localeCompare(b.name));
+    playlistUI.innerHTML = '';
+    tracks.forEach((file, idx) => {
+      const li = document.createElement('li');
+      li.textContent = file.name;
+      li.onclick = () => { playTrack(idx); };
+      playlistUI.appendChild(li);
+    });
+    if(tracks.length) playTrack(0);
+  });
+
+  function playTrack(idx) {
+    currentTrack = idx;
+    const file = tracks[currentTrack];
+    audio.src = URL.createObjectURL(file);
+    audio.play();
+    updatePlaylistUI();
+  }
+
+  function nextTrack() {
+    if (tracks.length) playTrack((currentTrack + 1) % tracks.length);
+  }
+
+  function prevTrack() {
+    if (tracks.length) playTrack((currentTrack - 1 + tracks.length) % tracks.length);
+  }
+
+  audio.onended = nextTrack;
+
+  function updatePlaylistUI() {
+    Array.from(playlistUI.children).forEach((li, idx) => 
+      li.className = idx === currentTrack ? 'active' : ''
+    );
+  }
+</script>
+</body>
+</html>
