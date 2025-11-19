@@ -2,63 +2,71 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Stylish MP3 Music Player</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Folder MP3 Music Player</title>
   <style>
-    body {
-      background: linear-gradient(to right, #232526, #414345);
-      font-family: 'Segoe UI', Arial, sans-serif;
-      color: #eee;
-      margin: 0; padding: 0;
-      min-height: 100vh;
-    }
-    .container {
-      max-width: 400px;
-      background: rgba(30,30,30,0.97);
-      margin: 48px auto;
-      padding: 32px 24px;
-      border-radius: 20px;
-      box-shadow: 0 8px 24px #23252655;
-    }
-    h2, h3 { text-align: center; margin-bottom: 18px; }
-    #folderInput {
-      background: #333; color: #eee;
-      border: none; padding: 9px 14px;
-      border-radius: 6px;
-      display: block; margin: 0 auto 20px auto;
-      font-size: 16px;
-    }
-    #player {
-      display: flex; flex-direction: column;
-      align-items: center; margin-bottom: 16px;
-    }
-    audio { display: none; }
-    .controls button {
-      background: #3498db;
-      border: none; color: #fff; font-size: 24px;
-      margin: 0 11px; padding: 8px 12px;
-      border-radius: 7px; cursor: pointer;
-      box-shadow: 0 4px 14px #2223;
-      transition: background 0.22s;
-    }
-    .controls button:active { background: #2980b9; }
-    #playlist {
-      list-style: none; padding: 0;
-      margin: 10px 0 0 0; max-height: 160px; overflow-y: auto;
-      border-radius: 10px;
-      background: #2c3e50cc;
-    }
-    #playlist li {
-      padding: 10px 16px; cursor: pointer;
-      border-bottom: 1px solid #23252640;
-      transition: background 0.18s;
-    }
-    #playlist li:last-child { border-bottom: none; }
-    #playlist li:hover, #playlist li.active {
-      background: #3498db22;
-      color: #fff;
-      font-weight: bold;
-    }
-    .progress-container {
-      width: 100%; background: #23252655;
-      border-radius: 6px; margin
+    body { font-family: Arial, sans-serif; background: #f4f4f9; padding: 40px; }
+    #player { margin: 20px 0; }
+    #playlist li { cursor: pointer; margin: 3px 0; }
+    #playlist li.active { font-weight: bold; color: #3498db; }
+    button { margin: 0 7px; }
+  </style>
+</head>
+<body>
+  <h2>Upload Folder of MP3s</h2>
+  <input type="file" id="folderInput" webkitdirectory directory multiple accept=".mp3"/>
+  <div id="player">
+    <audio id="audio" controls style="width: 300px;"></audio>
+    <div>
+      <button onclick="prevTrack()">⏮️ Prev</button>
+      <button onclick="nextTrack()">Next ⏭️</button>
+    </div>
+  </div>
+  <h3>Playlist</h3>
+  <ul id="playlist"></ul>
+
+<script>
+  const input = document.getElementById('folderInput');
+  const audio = document.getElementById('audio');
+  const playlistUI = document.getElementById('playlist');
+  let tracks = [];
+  let currentTrack = 0;
+
+  input.addEventListener('change', function(e) {
+    tracks = Array.from(e.target.files).filter(f => f.name.endsWith('.mp3'));
+    tracks.sort((a, b) => a.name.localeCompare(b.name));
+    playlistUI.innerHTML = '';
+    tracks.forEach((file, idx) => {
+      const li = document.createElement('li');
+      li.textContent = file.name;
+      li.onclick = () => { playTrack(idx); };
+      playlistUI.appendChild(li);
+    });
+    if(tracks.length) playTrack(0);
+  });
+
+  function playTrack(idx) {
+    currentTrack = idx;
+    const file = tracks[currentTrack];
+    audio.src = URL.createObjectURL(file);
+    audio.play();
+    updatePlaylistUI();
+  }
+
+  function nextTrack() {
+    if (tracks.length) playTrack((currentTrack + 1) % tracks.length);
+  }
+
+  function prevTrack() {
+    if (tracks.length) playTrack((currentTrack - 1 + tracks.length) % tracks.length);
+  }
+
+  audio.onended = nextTrack;
+
+  function updatePlaylistUI() {
+    Array.from(playlistUI.children).forEach((li, idx) => 
+      li.className = idx === currentTrack ? 'active' : ''
+    );
+  }
+</script>
+</body>
+</html>
