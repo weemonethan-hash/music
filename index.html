@@ -200,7 +200,7 @@
       height: 100vh;
       width: var(--sidebar-width);
       max-width: 92%;
-      /* switched to a fully opaque gradient for improved contrast (no transparency) */
+      /* fully opaque gradient for improved contrast (no transparency) */
       background: linear-gradient(180deg, #0b1220 0%, #071229 100%);
       border-left: 1px solid rgba(255,255,255,0.06);
       box-shadow: -10px 0 30px rgba(2,6,23,0.6);
@@ -244,6 +244,7 @@
       border:1px solid rgba(255,255,255,0.02);
       color:var(--muted);
       font-size:13px;
+      white-space:pre-wrap;
     }
     .updates .log-item + .log-item { margin-top:8px; }
 
@@ -288,7 +289,7 @@
           <div style="font-weight:600">Upload a folder of MP3s</div>
           <div class="small">Click or drop a folder. Files are read locally — nothing is uploaded.</div>
         </div>
-        <input id="folderInput" type="file" webkitdirectory directory multiple accept=".mp3,audio/*" aria-hidden="true" style="display:none" />
+        <input id="folderInput" type="file" webkitdirectory directory multiple accept=".mp3,audio/*,.txt,.md" aria-hidden="true" style="display:none" />
       </div>
 
       <div class="cover card" aria-hidden="true">
@@ -353,14 +354,12 @@
       </div>
     </div>
     <div class="logs" id="logsList" tabindex="0" aria-live="polite">
-      <!-- Placeholder log entries -->
-      <div class="log-item">
-        <strong>UI updates</strong>
-        <div style="color:var(--muted); margin-top:6px; font-size:13px;">
-          - Collapsible update logs sidebar added (folds away to a vertical tab).<br>
-          - Accessibility improvements for toggle and focus states.<br>
-          - Placeholder entry visible here.
-        </div>
+      <!-- Placeholder log entries (will be replaced if a github/*.txt exists in uploaded folder) -->
+      <div class="log-item" id="defaultLog">
+<strong>UI updates</strong>
+- Collapsible update logs sidebar added (folds away to a vertical tab).
+- Accessibility improvements for toggle and focus states.
+- Placeholder entry visible here.
       </div>
     </div>
   </aside>
@@ -395,6 +394,8 @@
   const updatesPanel = document.getElementById('updatesPanel');
   const updatesTab = document.getElementById('updatesTab');
   const closeUpdatesBtn = document.getElementById('closeUpdatesBtn');
+  const logsList = document.getElementById('logsList');
+  const defaultLog = document.getElementById('defaultLog');
 
   // State
   let tracks = []; // {file, name, displayName, url, duration, size, path}
@@ -423,6 +424,87 @@
     return filename.replace(/\.[^/.]+$/, '');
   }
 
+  // Small utility: escape HTML for titles
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, function(m) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]); });
+  }
+
+  // Find an update file inside the provided File list.
+  // Looks for files located under a directory named 'github' (case-insensitive) and with extension .txt or .md.
+  // Prefer names like updates.txt, update.txt, changelog.txt, updates.md.
+  function findUpdateFile(fileList) {
+    if (!fileList || !fileList.length) return null;
+    const preferNames = ['updates.txt','update.txt','changelog.txt','updates.md','CHANGELOG.md','updates'];
+    // Normalize file info: determine a path string to inspect (fullPath, webkitRelativePath, or name)
+    const normalize = f => (f.fullPath || f.webkitRelativePath || f.name || '').replace(/\\/g, '/');
+    // Candidate list: those with 'github' directory in their path
+    const candidates = fileList.filter(f => {
+      const p = normalize(f).toLowerCase();
+      return p.includes('/github/') || p.startsWith('github/') || p.includes('/.github/');
+    });
+    // Also allow top-level file named updates if user places it directly under root with name "github-updates" — but spec asked for "github directory", so primary is above.
+    const filtered = candidates.filter(f => {
+      const name = (f.name || '').toLowerCase();
+      return name.endsWith('.txt') || name.endsWith('.md') || preferNames.includes(name);
+    });
+    if (filtered.length === 0) return null;
+    // Prefer known filenames
+    for (const n of preferNames) {
+      const found = filtered.find(f => (f.name || '').toLowerCase() === n.toLowerCase());
+      if (found) return found;
+    }
+    // otherwise return first matching .txt/.md in github dir
+    return filtered[0];
+  }
+
+  // Read update file and inject into logs panel (keeps simple formatting)
+  async function loadUpdateLogsFromFile(file) {
+    if (!file) return;
+    try {
+      const text = await file.text();
+      // Clear default placeholder
+      logsList.innerHTML = '';
+      // Split into sections by double newlines to create separate log-item blocks
+      const sections = text.split(/\r?\n\r?\n/).filter(Boolean);
+      if (sections.length === 0) {
+        // single empty file
+        const node = document.createElement('div');
+        node.className = 'log-item';
+        node.textContent = '(update file was empty)';
+        logsList.appendChild(node);
+        return;
+      }
+      sections.forEach(sec => {
+        const node = document.createElement('div');
+        node.className = 'log-item';
+        // preserve newlines inside a section
+        node.textContent = sec.trim();
+        logsList.appendChild(node);
+      });
+      // Indicate presence of custom logs by highlighting tab slightly
+      updatesTab.style.background = 'linear-gradient(135deg,#60a5fa,#6ee7b7)';
+      updatesTab.setAttribute('title', 'Update Logs (loaded from github/*.txt)');
+      defaultLog && defaultLog.remove();
+    } catch (err) {
+      console.error('Failed to load update logs file', err);
+    }
+  }
+
+  // Fallback: restore default placeholder logs
+  function restoreDefaultLogs() {
+    logsList.innerHTML = '';
+    if (defaultLog) {
+      logsList.appendChild(defaultLog);
+    } else {
+      const node = document.createElement('div');
+      node.className = 'log-item';
+      node.innerHTML = '<strong>UI updates</strong><div style="color:var(--muted); margin-top:6px; font-size:13px;">- Collapsible update logs sidebar added (folds away to a vertical tab).<br>- Accessibility improvements for toggle and focus states.<br>- Placeholder entry visible here.</div>';
+      logsList.appendChild(node);
+    }
+    updatesTab.style.background = 'linear-gradient(135deg,#4654f5,#9be7c6)';
+    updatesTab.removeAttribute('title');
+  }
+
   // UI interactions
   dropZone.addEventListener('click', ()=> folderInput.click());
   dropZone.addEventListener('keydown', (e)=> {
@@ -433,7 +515,7 @@
   });
   folderInput.addEventListener('change', e => handleFiles(Array.from(e.target.files)));
 
-  // Drag & Drop (supports files and directories via DataTransferItemList when available)
+  // Drag & Drop handlers
   ['dragenter','dragover'].forEach(ev => {
     dropZone.addEventListener(ev, (e)=>{ e.preventDefault(); e.stopPropagation(); dropZone.classList.add('dragover'); });
   });
@@ -451,13 +533,11 @@
       : null;
 
     if (items && items.length) {
-      // Try to traverse folders (browser-specific APIs)
       const files = await traverseDataTransferItems(items);
       handleFiles(files);
       return;
     }
 
-    // fallback to files list
     const filesList = Array.from(e.dataTransfer.files || []);
     handleFiles(filesList);
   });
@@ -506,8 +586,21 @@
     });
   }
 
+  // Main file handling: looks for update file in github/ and then processes audio files
   function handleFiles(fileList){
-    const raw = Array.from(fileList);
+    // Keep original list for update-file discovery
+    const raw = Array.from(fileList || []);
+
+    // Try to find update file in provided files (prefer files under github/ folder)
+    const updateFile = findUpdateFile(raw);
+    if (updateFile) {
+      loadUpdateLogsFromFile(updateFile);
+    } else {
+      // no custom file found: show default
+      restoreDefaultLogs();
+    }
+
+    // Filter to audio files only for playlist
     const candidates = raw.filter(f => {
       const name = f.name || '';
       return name.toLowerCase().endsWith('.mp3') || (f.type && f.type.startsWith('audio/'));
@@ -518,12 +611,14 @@
       return;
     }
 
+    // Sort by path/name so directories are grouped and stable
     candidates.sort((a,b) => {
       const pa = a.fullPath || a.webkitRelativePath || a.name;
       const pb = b.fullPath || b.webkitRelativePath || b.name;
       return pa.localeCompare(pb, undefined, {sensitivity:'base', numeric:true});
     });
 
+    // Map into track objects and create displayName (filename without extension)
     tracks = candidates.map(f => {
       const name = f.name;
       return {
@@ -541,6 +636,7 @@
     playlistEl.innerHTML = '';
     currentIndex = -1;
 
+    // Preload durations sequentially to reduce concurrent loads
     loadDurationsSequential(tracks).then(() => {
       renderPlaylist();
       playTrack(0);
@@ -667,7 +763,6 @@
     const playingTrackRef = (currentIndex >= 0 && currentIndex < tracks.length) ? tracks[currentIndex] : null;
     const [item] = tracks.splice(from, 1);
     let insertAt = to;
-    // when dragging forward, after removal indexes shift; this insertAt keeps intuitive placement
     if (from < to) insertAt = to;
     tracks.splice(insertAt, 0, item);
 
@@ -876,18 +971,12 @@
   // Initial volume
   audio.volume = parseFloat(volumeRange.value);
 
-  // Small utility: escape HTML for titles
-  function escapeHtml(str) {
-    return String(str).replace(/[&<>"']/g, function(m) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]); });
-  }
-
   // Update logs toggle behavior
   function openUpdates() {
     updatesPanel.classList.add('open');
     updatesPanel.setAttribute('aria-hidden', 'false');
     updatesTab.setAttribute('aria-expanded', 'true');
-    const logs = document.getElementById('logsList');
-    if (logs) logs.focus();
+    if (logsList) logsList.focus();
   }
   function closeUpdates() {
     updatesPanel.classList.remove('open');
@@ -906,6 +995,12 @@
   });
   closeUpdatesBtn.addEventListener('click', closeUpdates);
   updatesPanel.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeUpdates(); });
+
+  // On load, ensure default logs are present
+  restoreDefaultLogs();
+
+  // Expose function to manually set logs from an external text file (for testing)
+  window._loadUpdateLogsFromFile = loadUpdateLogsFromFile;
 
 </script>
 
