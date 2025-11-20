@@ -174,10 +174,13 @@
     }
 
     .track{
-      display:flex; align-items:center; gap:12px; padding:10px; border-radius:10px; cursor:pointer; transition:all .12s ease;
+      display:flex; align-items:center; gap:12px; padding:10px; border-radius:10px; cursor:grab; transition:all .12s ease;
       background:transparent; border:1px solid transparent;
       outline:none;
     }
+    .track:active{ cursor:grabbing; }
+    .track.dragging{ opacity:0.5; transform: scale(.995); }
+    .track.drop-target{ box-shadow: inset 0 0 0 2px rgba(96,165,250,0.08); border-color: rgba(96,165,250,0.12); }
     .track:hover{ background: linear-gradient(90deg, rgba(255,255,255,0.012), rgba(255,255,255,0.01)); transform:translateY(-3px); }
     .track.active{ background: linear-gradient(90deg, rgba(102,126,234,0.06), rgba(110,231,183,0.03)); border-color: rgba(102,126,234,0.12); box-shadow:0 6px 20px rgba(34,56,165,0.06); }
     .track .num{ width:28px; text-align:center; color:var(--muted); }
@@ -334,7 +337,7 @@
         <div style="font-weight:700">Playlist</div>
         <div style="color:var(--muted); font-size:13px" id="folderName">No folder</div>
       </div>
-      <div class="playlist" id="playlist" role="list"></div>
+      <div class="playlist" id="playlist" role="list" aria-label="Playlist"></div>
     </div>
   </div>
 
@@ -591,6 +594,9 @@
     });
   }
 
+  // Drag-to-reorder playlist logic
+  let dragSrcIdx = null;
+
   function renderPlaylist(){
     playlistEl.innerHTML = '';
     tracks.forEach((t, idx) => {
@@ -599,16 +605,90 @@
       el.dataset.idx = idx;
       el.tabIndex = 0;
       el.setAttribute('role','listitem');
+      el.draggable = true;
       el.innerHTML = `
         <div class="num">${String(idx+1).padStart(2,'0')}</div>
         <div class="name" title="${escapeHtml(t.name)}">${escapeHtml(t.displayName)}</div>
         <div class="dur">${isFinite(t.duration) ? fmt(t.duration) : bytesToSize(t.size)}</div>
       `;
+
+      // Click / keyboard to play
       el.addEventListener('click', ()=> playTrack(idx));
       el.addEventListener('keydown', (e)=> { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); playTrack(idx); } });
+
+      // Drag events
+      el.addEventListener('dragstart', (e) => {
+        dragSrcIdx = idx;
+        el.classList.add('dragging');
+        try { e.dataTransfer.setData('text/plain', String(idx)); } catch(err){}
+        // use move effect
+        if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
+      });
+
+      el.addEventListener('dragend', () => {
+        dragSrcIdx = null;
+        // remove dragging classes from all
+        Array.from(playlistEl.children).forEach(c => c.classList.remove('dragging','drop-target'));
+      });
+
+      el.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        // visual cue
+        Array.from(playlistEl.children).forEach(c => c.classList.remove('drop-target'));
+        el.classList.add('drop-target');
+      });
+
+      el.addEventListener('dragleave', () => {
+        el.classList.remove('drop-target');
+      });
+
+      el.addEventListener('drop', (e) => {
+        e.preventDefault();
+        el.classList.remove('drop-target');
+        let from = null;
+        try {
+          from = parseInt(e.dataTransfer.getData('text/plain'));
+        } catch(err) {
+          from = dragSrcIdx;
+        }
+        const to = idx;
+        if (from === null || isNaN(from)) return;
+        if (from === to) return;
+        reorderTracks(from, to);
+      });
+
       playlistEl.appendChild(el);
     });
     updateActiveInPlaylist();
+  }
+
+  function reorderTracks(from, to) {
+    // keep reference to currently playing track object (if any)
+    const playingTrackRef = (currentIndex >= 0 && currentIndex < tracks.length) ? tracks[currentIndex] : null;
+    // remove item
+    const [item] = tracks.splice(from, 1);
+    // insert at 'to' position. If removing earlier index shifts target; adjust.
+    let insertAt = to;
+    if (from < to) insertAt = to; // after removal, indexes shift left; inserting at 'to' places after target in original intent
+    if (from < to) insertAt = to; // this behavior puts dragged item where dropped (the current to)
+    // But to ensure intuitive insertion, if dragged forward we insert at to (which is already the target index after removal).
+    tracks.splice(insertAt, 0, item);
+
+    // update currentIndex to the new index of the same playing track reference
+    if (playingTrackRef) {
+      const newIndex = tracks.indexOf(playingTrackRef);
+      if (newIndex !== -1) currentIndex = newIndex;
+      else currentIndex = -1;
+    }
+
+    // regenerate shuffle order if shuffle active (so new ordering is reflected)
+    if (shuffle) generateShuffleOrder();
+
+    renderPlaylist();
+    // If audio is playing or paused with a set src, we should keep playing the same track (no src change)
+    // trackIndex and now playing UI will be updated by updateNowPlaying/renderPlaylist
+    updateNowPlaying();
   }
 
   function playTrack(idx){
@@ -814,7 +894,6 @@
     updatesPanel.classList.add('open');
     updatesPanel.setAttribute('aria-hidden', 'false');
     updatesTab.setAttribute('aria-expanded', 'true');
-    // move keyboard focus into logs container
     const logs = document.getElementById('logsList');
     if (logs) logs.focus();
   }
@@ -834,16 +913,10 @@
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); updatesTab.click(); }
   });
   closeUpdatesBtn.addEventListener('click', closeUpdates);
+  updatesPanel.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeUpdates(); });
 
-  // Close when pressing Escape inside panel
-  updatesPanel.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeUpdates();
-  });
+  // NOTE: The rest of the player logic remains unchanged.
 
-  // small note: clicking outside does not close the panel to avoid accidental closes on mobile.
-  // If you prefer outside click to close, I can add that behavior.
-
-  // NOTE: the rest of the player logic remains unchanged (playlist, playback, shuffle, volume, etc).
 </script>
 
 <!-- Bottom left button -->
