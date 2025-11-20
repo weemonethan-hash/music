@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     :root{
+      /* Dark (default) theme variables */
       --bg:#0f1724;
       --card:#0b1220;
       --accent:#6ee7b7;
@@ -16,6 +17,13 @@
       --radius: 12px;
       --sidebar-width: 320px;
 
+      /* background radial tints (dark defaults) */
+      --radial1: rgba(8,20,38,0.9);
+      --radial2: rgba(7,19,36,0.9);
+
+      /* text color */
+      --text: #e6eef6;
+
       /* size variables (can be changed via settings) */
       --volume-width: 110px;
       --volume-thumb-size: 16px;
@@ -24,38 +32,40 @@
       --ui-density: 12px; /* gap / padding baseline */
     }
 
-    /* Light theme variables */
+    /* Light theme variables (override defaults) */
     [data-theme="light"]{
       --bg: #f6f9fb;
       --card: #ffffff;
       --accent: #2563eb;
       --muted: #5b6770;
-      --glass: rgba(2,6,23,0.03);
-      --glass-2: rgba(2,6,23,0.02);
+      /* subtle dark glass overlay on white cards */
+      --glass: rgba(11,18,32,0.03);
+      --glass-2: rgba(11,18,32,0.02);
       --shadow: 0 8px 30px rgba(2,6,23,0.06);
+
+      /* lighter radial tints to keep the background subtle on light theme */
+      --radial1: rgba(37,99,235,0.03);
+      --radial2: rgba(96,165,250,0.02);
+
+      --text: #0b1220;
       color-scheme: light;
     }
-
-    /* High-contrast / sepia or other themes could be added similarly */
 
     *{box-sizing:border-box}
     body{
       margin:0;
       min-height:100vh;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      background: radial-gradient(1200px 600px at 10% 20%, rgba(8,20,38,0.9) 0%, transparent 20%),
-                  radial-gradient(900px 400px at 90% 80%, rgba(7,19,36,0.9) 0%, transparent 20%),
+      /* use radial tints and the bg color variable */
+      background: radial-gradient(1200px 600px at 10% 20%, var(--radial1) 0%, transparent 20%),
+                  radial-gradient(900px 400px at 90% 80%, var(--radial2) 0%, transparent 20%),
                   var(--bg);
-      color: #e6eef6;
+      color: var(--text);
       padding:28px;
       display:flex;
       align-items:center;
       justify-content:center;
     }
-
-    /* light-theme overrides on body text color */
-    [data-theme="light"] body, [data-theme="light"] .wrap { color: #0b1220; }
-    [data-theme="light"] .small { color: var(--muted); }
 
     .wrap{
       width:100%;
@@ -68,18 +78,18 @@
 
     /* card */
     .card{
+      /* use CSS vars so theme overrides affect cards consistently */
       background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.015));
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       padding:18px;
       border: 1px solid rgba(255,255,255,0.03);
+      color: var(--text);
+      background-color: var(--card);
     }
 
-    /* adapt card colors for light theme */
-    [data-theme="light"] .card {
-      background: linear-gradient(180deg, rgba(2,6,23,0.03), rgba(2,6,23,0.01));
-      border: 1px solid rgba(11,18,32,0.06);
-    }
+    /* In light theme, the card background is already provided by --card and border/shadow vars above.
+       We avoid hardcoding another dark gradient to prevent "weird" appearance. */
 
     /* left column - player */
     .player{
@@ -125,10 +135,11 @@
       height:240px;
       border-radius:12px;
       overflow:hidden;
+      /* use card background + subtle texture tint */
       background:
-        linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.18)),
+        linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06)),
         repeating-linear-gradient(135deg, rgba(255,255,255,0.01) 0 2px, transparent 2px 8px),
-        #071229;
+        var(--card);
       display:flex;
       align-items:center;
       justify-content:center;
@@ -248,7 +259,7 @@
       display:flex;
       flex-direction:column;
       gap:12px;
-      color: #e6eef6;
+      color: var(--text);
     }
     .updates.open { transform: translateX(0); }
 
@@ -337,6 +348,7 @@
       box-shadow: 0 8px 30px rgba(2,6,23,0.5);
       border: 1px solid rgba(255,255,255,0.04);
       z-index: 20000;
+      color: var(--text);
     }
     .settingsRow { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 4px; }
     .settingsRow label { font-size:13px; color:var(--muted); }
@@ -1102,12 +1114,10 @@
   const STORAGE_KEY = 'mp3player_settings_v1';
 
   function applySettings(settings) {
-    // theme: dark/light/system
     if (!settings) settings = {};
     const theme = settings.theme || 'dark';
     applyTheme(theme);
 
-    // volume size
     const vsize = settings.volumeSize || 'medium';
     if (vsize === 'small') {
       document.documentElement.style.setProperty('--volume-width', '80px');
@@ -1115,16 +1125,14 @@
     } else if (vsize === 'large') {
       document.documentElement.style.setProperty('--volume-width', '160px');
       document.documentElement.style.setProperty('--volume-thumb-size', '20px');
-    } else { // medium
+    } else {
       document.documentElement.style.setProperty('--volume-width', '110px');
       document.documentElement.style.setProperty('--volume-thumb-size', '16px');
     }
 
-    // progress size
     const psize = settings.progressSize || '8';
     document.documentElement.style.setProperty('--progress-height', psize + 'px');
 
-    // UI density
     const density = settings.uiDensity || 'comfortable';
     if (density === 'compact') {
       document.documentElement.classList.add('density-compact');
@@ -1132,7 +1140,6 @@
       document.documentElement.classList.remove('density-compact');
     }
 
-    // reflect controls
     themeSelect.value = settings.theme || 'dark';
     volumeSize.value = settings.volumeSize || 'medium';
     progressSize.value = settings.progressSize || '8';
@@ -1142,8 +1149,9 @@
   function applyTheme(choice) {
     if (choice === 'system') {
       const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-      document.body.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
-      document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+      const applied = prefersDark ? 'dark' : 'light';
+      document.body.setAttribute('data-theme', applied);
+      document.documentElement.setAttribute('data-theme', applied);
     } else {
       document.body.setAttribute('data-theme', choice);
       document.documentElement.setAttribute('data-theme', choice);
@@ -1175,7 +1183,6 @@
   function openSettingsPanel() {
     settingsPanel.classList.remove('hidden');
     settingsBtn.setAttribute('aria-expanded', 'true');
-    // position it near the settings button (basic)
     settingsPanel.style.right = '28px';
     settingsPanel.querySelector('select').focus();
   }
@@ -1198,7 +1205,7 @@
     const val = e.target.value;
     const s = loadSettings() || {};
     s.volumeSize = val;
-    applySettings(s); // will update CSS vars and UI controls
+    applySettings(s);
     saveSettings(s);
   });
   progressSize.addEventListener('change', (e) => {
@@ -1220,7 +1227,7 @@
   const initialSettings = loadSettings() || { theme: 'dark', volumeSize: 'medium', progressSize: '8', uiDensity: 'comfortable' };
   applySettings(initialSettings);
 
-  // Resize handling for 'system' theme changes
+  // React to system theme changes only when using "system" setting
   if (window.matchMedia) {
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
       const s = loadSettings();
@@ -1231,7 +1238,7 @@
   // On load, ensure default logs are present
   restoreDefaultLogs();
 
-  // Ensure the settings panel closes when ESC pressed and toggles accessible focus
+  // Close panels with Escape and basic focus trapping for settings
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       if (!settingsPanel.classList.contains('hidden')) closeSettingsPanel();
@@ -1239,7 +1246,6 @@
     }
   });
 
-  // Accessibility: trap focus inside settings when open (basic)
   settingsPanel.addEventListener('keydown', (e) => {
     if (e.key === 'Tab') {
       const focusable = settingsPanel.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
@@ -1254,7 +1260,7 @@
     }
   });
 
-  // expose a small helper to programmatically set volume control size (for other UI extension)
+  // expose helper for programmatic changes
   window.mp3player = {
     setVolumeControlSize: (size) => {
       const s = loadSettings() || {};
@@ -1263,8 +1269,6 @@
       saveSettings(s);
     }
   };
-
-  // done: settings + volume/progress size + theme support
 </script>
 </body>
 </html>
