@@ -67,10 +67,12 @@
       color:var(--muted);
       cursor:pointer;
       transition:all .18s ease;
+      outline: none;
     }
 
     .drop:hover{ transform: translateY(-3px); box-shadow: 0 12px 30px rgba(2,6,23,0.5); }
     .drop.dragover{ border-color: rgba(102, 126, 234, 0.6); color: #cfeff0; background: linear-gradient(90deg, rgba(102, 126, 234, 0.03), rgba(255,255,255,0.01)); }
+    .drop:focus{ box-shadow: 0 0 0 3px rgba(102,126,234,0.14); }
 
     .drop .icon{
       width:56px; height:56px; border-radius:10px;
@@ -127,13 +129,18 @@
     button.icon{
       background:var(--glass); border:0; color:var(--muted); padding:10px; border-radius:10px; cursor:pointer;
       transition: all .14s ease;
+      outline:none;
     }
     button.icon:hover{ transform: translateY(-4px); color:var(--accent); }
+    button.icon:focus{ box-shadow: 0 0 0 3px rgba(110,231,183,0.12); }
 
     button.big{
       font-size:18px; padding:14px 18px; border-radius:12px; background:linear-gradient(90deg,#6ee7b7,#60a5fa);
       border:0; color:#062; box-shadow: 0 8px 24px rgba(96,165,250,0.12);
+      cursor:pointer;
+      outline:none;
     }
+    button.big:focus{ box-shadow: 0 0 0 3px rgba(96,165,250,0.12); }
 
     .seek{
       display:flex; align-items:center; gap:12px;
@@ -168,12 +175,15 @@
     .track{
       display:flex; align-items:center; gap:12px; padding:10px; border-radius:10px; cursor:pointer; transition:all .12s ease;
       background:transparent; border:1px solid transparent;
+      outline:none;
     }
     .track:hover{ background: linear-gradient(90deg, rgba(255,255,255,0.012), rgba(255,255,255,0.01)); transform:translateY(-3px); }
     .track.active{ background: linear-gradient(90deg, rgba(102,126,234,0.06), rgba(110,231,183,0.03)); border-color: rgba(102,126,234,0.12); box-shadow:0 6px 20px rgba(34,56,165,0.06); }
     .track .num{ width:28px; text-align:center; color:var(--muted); }
     .track .name{ flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
     .track .dur{ color:var(--muted); font-size:13px; width:62px; text-align:right; }
+
+    .track:focus{ box-shadow: 0 0 0 3px rgba(102,126,234,0.08); }
 
     /* footer / small */
     .help{ margin-top:8px; color:var(--muted); font-size:13px; }
@@ -187,13 +197,13 @@
 <body>
   <div class="wrap">
     <div class="card player">
-      <div id="dropZone" class="drop" title="Click to choose folder or drop files/folders here">
-        <div class="icon">MP3</div>
+      <div id="dropZone" class="drop" role="button" tabindex="0" aria-label="Upload folder of MP3s. Click or drop files here." title="Click to choose folder or drop files/folders here">
+        <div class="icon" aria-hidden="true">MP3</div>
         <div>
           <div style="font-weight:600">Upload a folder of MP3s</div>
           <div class="small">Click or drop a folder. Files are read locally — nothing is uploaded.</div>
         </div>
-        <input id="folderInput" type="file" webkitdirectory directory multiple accept=".mp3" style="display:none" />
+        <input id="folderInput" type="file" webkitdirectory directory multiple accept=".mp3,audio/*" aria-hidden="true" style="display:none" />
       </div>
 
       <div class="cover card" aria-hidden="true">
@@ -202,8 +212,8 @@
 
       <div class="info">
         <div class="meta">
-          <h4 id="trackTitle">—</h4>
-          <p id="trackSub">No file loaded</p>
+          <h4 id="trackTitle" aria-live="polite">—</h4>
+          <p id="trackSub" aria-live="polite">No file loaded</p>
         </div>
         <div style="text-align:right; color:var(--muted); font-size:13px;">
           <div id="trackIndex">0 / 0</div>
@@ -212,32 +222,32 @@
 
       <div class="controls">
         <div class="ctrl-left">
-          <button class="icon" id="shuffleBtn" title="Shuffle">🔀</button>
+          <button class="icon" id="shuffleBtn" title="Shuffle" aria-pressed="false">🔀</button>
           <button class="icon" id="prevBtn" title="Previous">⏮️</button>
-          <button class="big" id="playPauseBtn" title="Play / Pause">▶️</button>
+          <button class="big" id="playPauseBtn" title="Play / Pause" aria-pressed="false">▶️</button>
           <button class="icon" id="nextBtn" title="Next">⏭️</button>
           <button class="icon" id="repeatBtn" title="Repeat: off">🔁</button>
         </div>
 
         <div class="ctrl-right">
           <div class="volume">
-            <button class="icon" id="muteBtn" title="Mute / Unmute">🔊</button>
-            <input id="volumeRange" type="range" min="0" max="1" step="0.01" value="0.9" />
+            <button class="icon" id="muteBtn" title="Mute / Unmute" aria-pressed="false">🔊</button>
+            <input id="volumeRange" type="range" min="0" max="1" step="0.01" value="0.9" aria-label="Volume" />
           </div>
         </div>
       </div>
 
       <div class="seek">
         <div class="time" id="currentTime">0:00</div>
-        <div class="progress" id="progressBar" title="Seek">
+        <div class="progress" id="progressBar" title="Seek" role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
           <div class="bar" id="progressFill"></div>
         </div>
         <div class="time" id="durationTime">0:00</div>
       </div>
 
-      <div class="help">This music player does support uploading music by folders BUT, Please ensure that your music files are legally obtained. the music player does not permit or condone the use of illegal copies. by uploading music you agree to this.</div>
+      <div class="help">This music player supports loading music from folders. Please ensure that your music files are legally obtained. The player does not permit or condone the use of illegal copies.</div>
 
-      <audio id="audio" preload="metadata" style="display:none"></audio>
+      <audio id="audio" preload="metadata" style="display:none" crossorigin="anonymous"></audio>
     </div>
 
     <div class="card" style="display:flex; flex-direction:column; gap:12px;">
@@ -245,7 +255,7 @@
         <div style="font-weight:700">Playlist</div>
         <div style="color:var(--muted); font-size:13px" id="folderName">No folder</div>
       </div>
-      <div class="playlist" id="playlist"></div>
+      <div class="playlist" id="playlist" role="list"></div>
     </div>
   </div>
 
@@ -273,12 +283,12 @@
   const folderNameEl = document.getElementById('folderName');
 
   // State
-  let tracks = []; // {file, name, url, duration, size}
+  let tracks = []; // {file, name, displayName, url, duration, size, path}
   let currentIndex = -1;
   let shuffle = false;
   let repeatMode = 0; // 0=off,1=all,2=one
   let order = []; // order of indices when shuffle on
-  let createdObjectURLs = []; // to revoke on reload
+  let currentObjectURL = null; // object URL currently used by audio element
 
   // Helpers
   const fmt = s => {
@@ -294,39 +304,138 @@
     return parseFloat((bytes/Math.pow(k,i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  // Strip file extension (last ".ext") from filename for display
+  function stripExtension(filename) {
+    return filename.replace(/\.[^/.]+$/, '');
+  }
+
   // UI interactions
   dropZone.addEventListener('click', ()=> folderInput.click());
+  dropZone.addEventListener('keydown', (e)=> {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      folderInput.click();
+    }
+  });
   folderInput.addEventListener('change', e => handleFiles(Array.from(e.target.files)));
 
-  // Drag & Drop
+  // Drag & Drop (supports files and directories via DataTransferItemList when available)
   ['dragenter','dragover'].forEach(ev => {
     dropZone.addEventListener(ev, (e)=>{ e.preventDefault(); e.stopPropagation(); dropZone.classList.add('dragover'); });
   });
   ['dragleave','drop'].forEach(ev => {
     dropZone.addEventListener(ev, (e)=>{ e.preventDefault(); e.stopPropagation(); dropZone.classList.remove('dragover'); });
   });
-  dropZone.addEventListener('drop', e => {
-    const items = Array.from(e.dataTransfer.files || []);
-    if (items.length) handleFiles(items);
-  });
 
-  function handleFiles(fileList){
-    // clear previous URLs
-    createdObjectURLs.forEach(u => URL.revokeObjectURL(u));
-    createdObjectURLs = [];
-    tracks = Array.from(fileList).filter(f => f.name.toLowerCase().endsWith('.mp3'));
-    if (!tracks.length) {
-      alert('No mp3 files found in selection.');
+  dropZone.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dropZone.classList.remove('dragover');
+
+    const items = e.dataTransfer && e.dataTransfer.items && e.dataTransfer.items.length
+      ? e.dataTransfer.items
+      : null;
+
+    if (items && items.length) {
+      // Try to traverse folders (browser-specific APIs)
+      const files = await traverseDataTransferItems(items);
+      handleFiles(files);
       return;
     }
-    // Sort by name (natural-ish)
-    tracks.sort((a,b)=> a.name.localeCompare(b.name, undefined, {sensitivity:'base', numeric:true}));
-    // Map into objects with placeholders
-    tracks = tracks.map(f => ({ file: f, name: f.name, url: null, duration: null, size: f.size }));
-    folderNameEl.textContent = deriveFolderName(fileList);
+
+    // fallback to files list
+    const filesList = Array.from(e.dataTransfer.files || []);
+    handleFiles(filesList);
+  });
+
+  // Traverse DataTransferItemList to gather files (recursively)
+  function traverseDataTransferItems(items){
+    // Uses webkitGetAsEntry when available.
+    const promises = [];
+    for (let i = 0; i < items.length; i++) {
+      const it = items[i];
+      if (typeof it.getAsEntry === 'function' || typeof it.webkitGetAsEntry === 'function') {
+        const entry = (it.getAsEntry && it.getAsEntry()) || (it.webkitGetAsEntry && it.webkitGetAsEntry());
+        if (entry) promises.push(traverseFileTree(entry));
+        continue;
+      }
+      // fallback: try getAsFile
+      const f = it.getAsFile && it.getAsFile();
+      if (f) promises.push(Promise.resolve([f]));
+    }
+    return Promise.all(promises).then(arrs => arrs.flat());
+  }
+
+  function traverseFileTree(item, path = '') {
+    return new Promise((resolve) => {
+      if (item.isFile) {
+        item.file(file => {
+          file.fullPath = path + file.name;
+          resolve([file]);
+        }, ()=> resolve([]));
+      } else if (item.isDirectory) {
+        const dirReader = item.createReader();
+        const entries = [];
+        const readEntries = () => {
+          dirReader.readEntries((results) => {
+            if (!results.length) {
+              // when done, traverse all found entries
+              const promises = entries.map(e => traverseFileTree(e, path + item.name + '/'));
+              Promise.all(promises).then(arrs => resolve(arrs.flat()));
+              return;
+            }
+            for (let i = 0; i < results.length; i++) entries.push(results[i]);
+            readEntries();
+          }, ()=> resolve([]));
+        };
+        readEntries();
+      } else {
+        resolve([]);
+      }
+    });
+  }
+
+  function handleFiles(fileList){
+    // Accept File objects or File-like with .fullPath or webkitRelativePath
+    // Filter only mp3/audio files
+    const raw = Array.from(fileList);
+    const candidates = raw.filter(f => {
+      const name = f.name || '';
+      // Accept .mp3 and known audio mime types
+      return name.toLowerCase().endsWith('.mp3') || (f.type && f.type.startsWith('audio/'));
+    });
+
+    if (!candidates.length) {
+      alert('No mp3/audio files found in selection.');
+      return;
+    }
+
+    // Sort by path/name so directories are grouped and stable
+    candidates.sort((a,b) => {
+      const pa = a.fullPath || a.webkitRelativePath || a.name;
+      const pb = b.fullPath || b.webkitRelativePath || b.name;
+      return pa.localeCompare(pb, undefined, {sensitivity:'base', numeric:true});
+    });
+
+    // Map into objects and create displayName (filename without extension)
+    tracks = candidates.map(f => {
+      const name = f.name;
+      return {
+        file: f,
+        name: name, // original filename (with extension)
+        displayName: stripExtension(name), // name for UI (no extension)
+        url: null,
+        duration: null,
+        size: f.size,
+        path: f.fullPath || f.webkitRelativePath || f.name
+      };
+    });
+
+    folderNameEl.textContent = deriveFolderName(candidates);
     playlistEl.innerHTML = '';
     currentIndex = -1;
-    // Preload durations (sequential to reduce load)
+
+    // Preload durations sequentially to avoid many concurrent decodes
     loadDurationsSequential(tracks).then(() => {
       renderPlaylist();
       playTrack(0);
@@ -335,39 +444,51 @@
 
   function deriveFolderName(files){
     if (!files.length) return 'No folder';
-    try {
-      // take first file path and strip filename
-      const p = files[0].webkitRelativePath || files[0].name;
-      if (p.includes('/')) {
-        const seg = p.split('/');
-        return seg.slice(0, -1).join('/') || 'Folder';
-      }
-    } catch(e){}
+    // Try to get common parent directory name from paths
+    const paths = files.map(f => f.fullPath || f.webkitRelativePath || f.name).filter(Boolean);
+    if (!paths.length) return 'Folder';
+    const splitPaths = paths.map(p => p.split('/').filter(Boolean));
+    if (!splitPaths.length) return 'Folder';
+    // find common prefix
+    const first = splitPaths[0];
+    let common = [];
+    for (let i = 0; i < first.length; i++) {
+      const seg = first[i];
+      if (splitPaths.every(sp => sp[i] === seg)) common.push(seg);
+      else break;
+    }
+    if (common.length) return common.join('/') || 'Folder';
+    // fallback: try parent dir of first file
+    const p = paths[0];
+    if (p.includes('/')) {
+      const seg = p.split('/');
+      return seg.slice(0, -1).join('/') || 'Folder';
+    }
     return 'Folder';
   }
 
   function loadDurationsSequential(arr){
-    // load metadata one by one
     let i = 0;
     return new Promise((resolve) => {
       (function next(){
         if (i >= arr.length) return resolve();
         const item = arr[i];
         const a = document.createElement('audio');
-        const u = URL.createObjectURL(item.file);
-        createdObjectURLs.push(u);
         a.preload = 'metadata';
+        const u = URL.createObjectURL(item.file);
         a.src = u;
+        const cleanup = () => {
+          try{ URL.revokeObjectURL(u); } catch(e){}
+          if (a && a.remove) a.remove();
+        };
         a.addEventListener('loadedmetadata', ()=> {
           item.duration = a.duration;
-          URL.revokeObjectURL(a.src);
-          // keep urls for playing later (we'll recreate when playing)
+          cleanup();
           i++; next();
         }, {once:true});
         a.addEventListener('error', ()=> {
-          // skip and continue
           item.duration = NaN;
-          URL.revokeObjectURL(a.src);
+          cleanup();
           i++; next();
         }, {once:true});
       })();
@@ -380,12 +501,16 @@
       const el = document.createElement('div');
       el.className = 'track';
       el.dataset.idx = idx;
+      el.tabIndex = 0;
+      el.setAttribute('role','listitem');
+      // Show displayName (no extension) but keep full filename in title attribute
       el.innerHTML = `
         <div class="num">${String(idx+1).padStart(2,'0')}</div>
-        <div class="name" title="${t.name}">${t.name}</div>
+        <div class="name" title="${escapeHtml(t.name)}">${escapeHtml(t.displayName)}</div>
         <div class="dur">${isFinite(t.duration) ? fmt(t.duration) : bytesToSize(t.size)}</div>
       `;
       el.addEventListener('click', ()=> playTrack(idx));
+      el.addEventListener('keydown', (e)=> { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); playTrack(idx); } });
       playlistEl.appendChild(el);
     });
     updateActiveInPlaylist();
@@ -395,17 +520,21 @@
     if (!tracks.length) return;
     if (idx < 0 || idx >= tracks.length) return;
     currentIndex = idx;
-    // generate object URL just-in-time to avoid memory pressure
-    // revoke previous audio src if we created it
-    if (audio.src) {
-      try{ URL.revokeObjectURL(audio.src); } catch(e){}
+
+    // revoke previous object URL used by <audio> if any
+    if (currentObjectURL) {
+      try { URL.revokeObjectURL(currentObjectURL); } catch(e){}
+      currentObjectURL = null;
     }
+
     const track = tracks[currentIndex];
     const url = URL.createObjectURL(track.file);
-    createdObjectURLs.push(url);
+    currentObjectURL = url;
     track.url = url;
     audio.src = url;
-    audio.play().catch(()=>{ /* user interaction maybe required */ });
+    // allow autoplay attempt; if blocked, UI will show play icon
+    audio.play().catch(()=>{ /* user gesture needed */ });
+
     updateNowPlaying();
     updateActiveInPlaylist();
   }
@@ -418,39 +547,39 @@
       coverArt.textContent = 'No track selected';
       durationTimeEl.textContent = '0:00';
       currentTimeEl.textContent = '0:00';
+      playPauseBtn.setAttribute('aria-pressed','false');
       return;
     }
     const t = tracks[currentIndex];
-    trackTitle.textContent = t.name;
+    // show displayName (no extension) to user
+    trackTitle.textContent = t.displayName;
     trackSub.textContent = `${bytesToSize(t.size)}${isFinite(t.duration) ? ' • ' + fmt(t.duration) : ''}`;
     trackIndex.textContent = `${currentIndex+1} / ${tracks.length}`;
-    coverArt.textContent = (t.name.split(/\s|[-_.]/).slice(0,4).map(s => s[0]||'').join('') || '♪').toUpperCase();
+    coverArt.textContent = (t.displayName.split(/\s|[-_.]/).slice(0,4).map(s => s[0]||'').join('') || '♪').toUpperCase();
     durationTimeEl.textContent = isFinite(t.duration) ? fmt(t.duration) : '0:00';
-    // play button -> show pause
     playPauseBtn.textContent = '⏸️';
+    playPauseBtn.setAttribute('aria-pressed','true');
   }
 
   function updateActiveInPlaylist(){
     Array.from(playlistEl.children).forEach((el, i) => {
       el.classList.toggle('active', i === currentIndex);
+      el.setAttribute('aria-current', i === currentIndex ? 'true' : 'false');
     });
   }
 
   // Controls
   playPauseBtn.addEventListener('click', ()=> {
-    if (audio.paused) { audio.play(); playPauseBtn.textContent = '⏸️'; }
-    else { audio.pause(); playPauseBtn.textContent = '▶️'; }
+    if (audio.paused) { audio.play(); playPauseBtn.textContent = '⏸️'; playPauseBtn.setAttribute('aria-pressed','true'); }
+    else { audio.pause(); playPauseBtn.textContent = '▶️'; playPauseBtn.setAttribute('aria-pressed','false'); }
   });
-  prevBtn.addEventListener('click', ()=> {
-    playPrevious();
-  });
-  nextBtn.addEventListener('click', ()=> {
-    playNext();
-  });
+  prevBtn.addEventListener('click', ()=> playPrevious());
+  nextBtn.addEventListener('click', ()=> playNext());
 
   shuffleBtn.addEventListener('click', ()=> {
     shuffle = !shuffle;
     shuffleBtn.style.color = shuffle ? 'var(--accent)' : '';
+    shuffleBtn.setAttribute('aria-pressed', String(shuffle));
     if (shuffle) generateShuffleOrder();
   });
 
@@ -465,12 +594,14 @@
   muteBtn.addEventListener('click', ()=> {
     audio.muted = !audio.muted;
     muteBtn.textContent = audio.muted ? '🔈' : '🔊';
+    muteBtn.setAttribute('aria-pressed', String(audio.muted));
   });
 
   volumeRange.addEventListener('input', e => {
     audio.volume = parseFloat(e.target.value);
     audio.muted = audio.volume === 0;
     muteBtn.textContent = audio.muted ? '🔈' : '🔊';
+    muteBtn.setAttribute('aria-pressed', String(audio.muted));
   });
 
   // Audio events
@@ -481,11 +612,11 @@
     progressFill.style.width = pct + '%';
     currentTimeEl.textContent = fmt(cur);
     durationTimeEl.textContent = isFinite(dur) ? fmt(dur) : durationTimeEl.textContent;
+    progressBar.setAttribute('aria-valuenow', Math.round(pct));
   });
 
   audio.addEventListener('ended', ()=> {
     if (repeatMode === 2) {
-      // repeat one
       audio.currentTime = 0;
       audio.play();
       return;
@@ -504,12 +635,10 @@
   // Next / Prev logic with shuffle & repeat
   function generateShuffleOrder(){
     order = Array.from(tracks.keys());
-    // Fisher-Yates
     for (let i = order.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [order[i], order[j]] = [order[j], order[i]];
     }
-    // ensure current index is first
     if (currentIndex >= 0) {
       const pos = order.indexOf(currentIndex);
       if (pos > -1) order.splice(pos,1), order.unshift(currentIndex);
@@ -520,17 +649,15 @@
     if (!tracks.length) return;
     if (shuffle) {
       if (!order.length) generateShuffleOrder();
-      // find current pos within order
       let pos = order.indexOf(currentIndex);
       pos = pos === -1 ? 0 : pos + 1;
       if (pos >= order.length) {
         if (repeatMode === 1) pos = 0;
-        else return; // end of shuffled list
+        else return;
       }
       playTrack(order[pos]);
       return;
     }
-    // non-shuffle
     let nxt = currentIndex + 1;
     if (nxt >= tracks.length) {
       if (repeatMode === 1) nxt = 0;
@@ -559,9 +686,9 @@
     playTrack(prev);
   }
 
-  // Keyboard shortcuts
+  // Keyboard shortcuts (global)
   document.addEventListener('keydown', (e) => {
-    if (e.code === 'Space') { e.preventDefault(); playPauseBtn.click(); }
+    if (e.code === 'Space' && document.activeElement !== folderInput && document.activeElement.tagName !== 'INPUT') { e.preventDefault(); playPauseBtn.click(); return; }
     if (e.code === 'ArrowRight') { e.preventDefault(); nextBtn.click(); }
     if (e.code === 'ArrowLeft') { e.preventDefault(); prevBtn.click(); }
     if (e.code === 'ArrowUp') { e.preventDefault(); volumeRange.value = Math.min(1, parseFloat(volumeRange.value) + 0.05); volumeRange.dispatchEvent(new Event('input')); }
@@ -572,21 +699,31 @@
 
   // Cleanup on page unload
   window.addEventListener('beforeunload', ()=> {
-    createdObjectURLs.forEach(u => {
-      try{ URL.revokeObjectURL(u); } catch(e){}
-    });
+    if (currentObjectURL) {
+      try{ URL.revokeObjectURL(currentObjectURL); } catch(e){}
+      currentObjectURL = null;
+    }
   });
 
-  // Small accessibility: show play/pause state from audio events
-  audio.addEventListener('play', ()=> playPauseBtn.textContent = '⏸️');
-  audio.addEventListener('pause', ()=> playPauseBtn.textContent = '▶️');
+  // Reflect play/pause state to UI for accessibility
+  audio.addEventListener('play', ()=> { playPauseBtn.textContent = '⏸️'; playPauseBtn.setAttribute('aria-pressed','true'); });
+  audio.addEventListener('pause', ()=> { playPauseBtn.textContent = '▶️'; playPauseBtn.setAttribute('aria-pressed','false'); });
 
   // Initial volume
   audio.volume = parseFloat(volumeRange.value);
 
+  // Small utility: escape HTML for titles
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, function(m) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]); });
+  }
+
+  // NOTE:
+  // - Display names now use `displayName` (filename without extension). Full filename is preserved in title attributes.
+  // - If you'd like other behaviors (e.g. remove other suffixes, show artist/track parsed from filename, or extract ID3 tags), I can add that next.
 </script>
+
 <!-- Bottom left button -->
-<a href="https://snowrunnermods.fr/" target="_blank" style="
+<a href="https://snowrunnermods.fr/" target="_blank" rel="noopener" style="
   position: fixed;
   left: 24px;
   bottom: 24px;
