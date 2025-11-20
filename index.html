@@ -14,6 +14,7 @@
       --glass-2: rgba(255,255,255,0.02);
       --shadow: 0 8px 30px rgba(2,6,23,0.6);
       --radius: 12px;
+      --sidebar-width: 320px;
     }
 
     *{box-sizing:border-box}
@@ -188,14 +189,92 @@
     /* footer / small */
     .help{ margin-top:8px; color:var(--muted); font-size:13px; }
 
+    /* Update logs sidebar */
+    .updates {
+      position: fixed;
+      right: 0;
+      top: 0;
+      height: 100vh;
+      width: var(--sidebar-width);
+      max-width: 92%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.12));
+      border-left: 1px solid rgba(255,255,255,0.04);
+      box-shadow: -10px 0 30px rgba(2,6,23,0.6);
+      transform: translateX(calc(var(--sidebar-width)));
+      transition: transform .26s cubic-bezier(.2,.9,.2,1);
+      z-index: 10000;
+      padding: 18px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .updates.open { transform: translateX(0); }
+
+    .updates .header {
+      display:flex; align-items:center; justify-content:space-between; gap:8px;
+    }
+    .updates h3 { margin:0; font-size:16px; }
+    .updates .closeBtn {
+      background: var(--glass);
+      border:0;
+      padding:8px 10px;
+      border-radius:8px;
+      color:var(--muted);
+      cursor:pointer;
+      outline:none;
+    }
+    .updates .closeBtn:hover { color:var(--accent); transform: translateY(-2px); }
+
+    .updates .logs {
+      margin-top:6px;
+      overflow:auto;
+      padding-right:6px;
+      flex:1;
+    }
+    .updates .log-item {
+      padding:10px;
+      border-radius:8px;
+      background: rgba(255,255,255,0.012);
+      border:1px solid transparent;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .updates .log-item + .log-item { margin-top:8px; }
+
+    /* vertical tab (visible when folded) */
+    .updates-tab {
+      position: fixed;
+      right: 0;
+      top: 40%;
+      transform: translateY(-50%);
+      background: linear-gradient(135deg,#4654f5,#9be7c6);
+      color:#062;
+      font-weight:700;
+      padding:10px 12px;
+      border-radius: 12px 0 0 12px;
+      box-shadow: 0 6px 16px rgba(69,84,245,0.18);
+      cursor:pointer;
+      z-index: 10001;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      user-select: none;
+      outline:none;
+    }
+    .updates-tab:focus { box-shadow: 0 0 0 3px rgba(69,84,245,0.12); }
+
+    /* when sidebar open, hide tab slightly */
+    .updates.open + .updates-tab { transform: translateY(-50%) translateX(var(--sidebar-width)); }
+
     @media (max-width:980px){
       .wrap{ grid-template-columns: 1fr; padding:10px; }
       .cover{ height:200px }
+      .updates { width: 92%; transform: translateX(92%); }
+      .updates.open + .updates-tab { transform: translateY(-50%) translateX(92%); }
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
+  <div class="wrap" id="mainWrap">
     <div class="card player">
       <div id="dropZone" class="drop" role="button" tabindex="0" aria-label="Upload folder of MP3s. Click or drop files here." title="Click to choose folder or drop files/folders here">
         <div class="icon" aria-hidden="true">MP3</div>
@@ -259,6 +338,30 @@
     </div>
   </div>
 
+  <!-- Update logs sidebar (folded by default) -->
+  <aside class="updates" id="updatesPanel" aria-hidden="true">
+    <div class="header">
+      <h3>Update Logs</h3>
+      <div>
+        <button class="closeBtn" id="closeUpdatesBtn" aria-label="Close update logs">✕</button>
+      </div>
+    </div>
+    <div class="logs" id="logsList" tabindex="0" aria-live="polite">
+      <!-- Placeholder log entries -->
+      <div class="log-item">
+        <strong>UI updates</strong>
+        <div style="color:var(--muted); margin-top:6px; font-size:13px;">
+          - Collapsible update logs sidebar added (folds away to a vertical tab).<br>
+          - Accessibility improvements for toggle and focus states.<br>
+          - Placeholder entry visible here.
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- vertical tab (always visible) -->
+  <button class="updates-tab" id="updatesTab" aria-controls="updatesPanel" aria-expanded="false">Update Logs</button>
+
 <script>
   // Elements
   const folderInput = document.getElementById('folderInput');
@@ -281,6 +384,11 @@
   const currentTimeEl = document.getElementById('currentTime');
   const durationTimeEl = document.getElementById('durationTime');
   const folderNameEl = document.getElementById('folderName');
+
+  // Update logs elements
+  const updatesPanel = document.getElementById('updatesPanel');
+  const updatesTab = document.getElementById('updatesTab');
+  const closeUpdatesBtn = document.getElementById('closeUpdatesBtn');
 
   // State
   let tracks = []; // {file, name, displayName, url, duration, size, path}
@@ -350,7 +458,6 @@
 
   // Traverse DataTransferItemList to gather files (recursively)
   function traverseDataTransferItems(items){
-    // Uses webkitGetAsEntry when available.
     const promises = [];
     for (let i = 0; i < items.length; i++) {
       const it = items[i];
@@ -359,7 +466,6 @@
         if (entry) promises.push(traverseFileTree(entry));
         continue;
       }
-      // fallback: try getAsFile
       const f = it.getAsFile && it.getAsFile();
       if (f) promises.push(Promise.resolve([f]));
     }
@@ -379,7 +485,6 @@
         const readEntries = () => {
           dirReader.readEntries((results) => {
             if (!results.length) {
-              // when done, traverse all found entries
               const promises = entries.map(e => traverseFileTree(e, path + item.name + '/'));
               Promise.all(promises).then(arrs => resolve(arrs.flat()));
               return;
@@ -396,12 +501,9 @@
   }
 
   function handleFiles(fileList){
-    // Accept File objects or File-like with .fullPath or webkitRelativePath
-    // Filter only mp3/audio files
     const raw = Array.from(fileList);
     const candidates = raw.filter(f => {
       const name = f.name || '';
-      // Accept .mp3 and known audio mime types
       return name.toLowerCase().endsWith('.mp3') || (f.type && f.type.startsWith('audio/'));
     });
 
@@ -410,20 +512,18 @@
       return;
     }
 
-    // Sort by path/name so directories are grouped and stable
     candidates.sort((a,b) => {
       const pa = a.fullPath || a.webkitRelativePath || a.name;
       const pb = b.fullPath || b.webkitRelativePath || b.name;
       return pa.localeCompare(pb, undefined, {sensitivity:'base', numeric:true});
     });
 
-    // Map into objects and create displayName (filename without extension)
     tracks = candidates.map(f => {
       const name = f.name;
       return {
         file: f,
-        name: name, // original filename (with extension)
-        displayName: stripExtension(name), // name for UI (no extension)
+        name: name,
+        displayName: stripExtension(name),
         url: null,
         duration: null,
         size: f.size,
@@ -435,7 +535,6 @@
     playlistEl.innerHTML = '';
     currentIndex = -1;
 
-    // Preload durations sequentially to avoid many concurrent decodes
     loadDurationsSequential(tracks).then(() => {
       renderPlaylist();
       playTrack(0);
@@ -444,12 +543,10 @@
 
   function deriveFolderName(files){
     if (!files.length) return 'No folder';
-    // Try to get common parent directory name from paths
     const paths = files.map(f => f.fullPath || f.webkitRelativePath || f.name).filter(Boolean);
     if (!paths.length) return 'Folder';
     const splitPaths = paths.map(p => p.split('/').filter(Boolean));
     if (!splitPaths.length) return 'Folder';
-    // find common prefix
     const first = splitPaths[0];
     let common = [];
     for (let i = 0; i < first.length; i++) {
@@ -458,7 +555,6 @@
       else break;
     }
     if (common.length) return common.join('/') || 'Folder';
-    // fallback: try parent dir of first file
     const p = paths[0];
     if (p.includes('/')) {
       const seg = p.split('/');
@@ -503,7 +599,6 @@
       el.dataset.idx = idx;
       el.tabIndex = 0;
       el.setAttribute('role','listitem');
-      // Show displayName (no extension) but keep full filename in title attribute
       el.innerHTML = `
         <div class="num">${String(idx+1).padStart(2,'0')}</div>
         <div class="name" title="${escapeHtml(t.name)}">${escapeHtml(t.displayName)}</div>
@@ -521,7 +616,6 @@
     if (idx < 0 || idx >= tracks.length) return;
     currentIndex = idx;
 
-    // revoke previous object URL used by <audio> if any
     if (currentObjectURL) {
       try { URL.revokeObjectURL(currentObjectURL); } catch(e){}
       currentObjectURL = null;
@@ -532,7 +626,6 @@
     currentObjectURL = url;
     track.url = url;
     audio.src = url;
-    // allow autoplay attempt; if blocked, UI will show play icon
     audio.play().catch(()=>{ /* user gesture needed */ });
 
     updateNowPlaying();
@@ -551,7 +644,6 @@
       return;
     }
     const t = tracks[currentIndex];
-    // show displayName (no extension) to user
     trackTitle.textContent = t.displayName;
     trackSub.textContent = `${bytesToSize(t.size)}${isFinite(t.duration) ? ' • ' + fmt(t.duration) : ''}`;
     trackIndex.textContent = `${currentIndex+1} / ${tracks.length}`;
@@ -717,9 +809,41 @@
     return String(str).replace(/[&<>"']/g, function(m) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]); });
   }
 
-  // NOTE:
-  // - Display names now use `displayName` (filename without extension). Full filename is preserved in title attributes.
-  // - If you'd like other behaviors (e.g. remove other suffixes, show artist/track parsed from filename, or extract ID3 tags), I can add that next.
+  // Update logs toggle behavior
+  function openUpdates() {
+    updatesPanel.classList.add('open');
+    updatesPanel.setAttribute('aria-hidden', 'false');
+    updatesTab.setAttribute('aria-expanded', 'true');
+    // move keyboard focus into logs container
+    const logs = document.getElementById('logsList');
+    if (logs) logs.focus();
+  }
+  function closeUpdates() {
+    updatesPanel.classList.remove('open');
+    updatesPanel.setAttribute('aria-hidden', 'true');
+    updatesTab.setAttribute('aria-expanded', 'false');
+    updatesTab.focus();
+  }
+
+  updatesTab.addEventListener('click', () => {
+    const opened = updatesPanel.classList.contains('open');
+    if (opened) closeUpdates();
+    else openUpdates();
+  });
+  updatesTab.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); updatesTab.click(); }
+  });
+  closeUpdatesBtn.addEventListener('click', closeUpdates);
+
+  // Close when pressing Escape inside panel
+  updatesPanel.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeUpdates();
+  });
+
+  // small note: clicking outside does not close the panel to avoid accidental closes on mobile.
+  // If you prefer outside click to close, I can add that behavior.
+
+  // NOTE: the rest of the player logic remains unchanged (playlist, playback, shuffle, volume, etc).
 </script>
 
 <!-- Bottom left button -->
