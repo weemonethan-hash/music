@@ -192,7 +192,7 @@
     /* footer / small */
     .help{ margin-top:8px; color:var(--muted); font-size:13px; }
 
-    /* Update logs sidebar */
+    /* Update logs sidebar (opaque background) */
     .updates {
       position: fixed;
       right: 0;
@@ -200,8 +200,9 @@
       height: 100vh;
       width: var(--sidebar-width);
       max-width: 92%;
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.12));
-      border-left: 1px solid rgba(255,255,255,0.04);
+      /* switched to a fully opaque gradient for improved contrast (no transparency) */
+      background: linear-gradient(180deg, #0b1220 0%, #071229 100%);
+      border-left: 1px solid rgba(255,255,255,0.06);
       box-shadow: -10px 0 30px rgba(2,6,23,0.6);
       transform: translateX(calc(var(--sidebar-width)));
       transition: transform .26s cubic-bezier(.2,.9,.2,1);
@@ -210,6 +211,7 @@
       display:flex;
       flex-direction:column;
       gap:12px;
+      color: #e6eef6;
     }
     .updates.open { transform: translateX(0); }
 
@@ -234,11 +236,12 @@
       padding-right:6px;
       flex:1;
     }
+    /* Log items use a subtle contrasting card (opaque) for readability */
     .updates .log-item {
       padding:10px;
       border-radius:8px;
-      background: rgba(255,255,255,0.012);
-      border:1px solid transparent;
+      background: #081225; /* fully opaque darker card for each item */
+      border:1px solid rgba(255,255,255,0.02);
       color:var(--muted);
       font-size:13px;
     }
@@ -621,20 +624,17 @@
         dragSrcIdx = idx;
         el.classList.add('dragging');
         try { e.dataTransfer.setData('text/plain', String(idx)); } catch(err){}
-        // use move effect
         if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
       });
 
       el.addEventListener('dragend', () => {
         dragSrcIdx = null;
-        // remove dragging classes from all
         Array.from(playlistEl.children).forEach(c => c.classList.remove('dragging','drop-target'));
       });
 
       el.addEventListener('dragover', (e) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
-        // visual cue
         Array.from(playlistEl.children).forEach(c => c.classList.remove('drop-target'));
         el.classList.add('drop-target');
       });
@@ -664,30 +664,22 @@
   }
 
   function reorderTracks(from, to) {
-    // keep reference to currently playing track object (if any)
     const playingTrackRef = (currentIndex >= 0 && currentIndex < tracks.length) ? tracks[currentIndex] : null;
-    // remove item
     const [item] = tracks.splice(from, 1);
-    // insert at 'to' position. If removing earlier index shifts target; adjust.
     let insertAt = to;
-    if (from < to) insertAt = to; // after removal, indexes shift left; inserting at 'to' places after target in original intent
-    if (from < to) insertAt = to; // this behavior puts dragged item where dropped (the current to)
-    // But to ensure intuitive insertion, if dragged forward we insert at to (which is already the target index after removal).
+    // when dragging forward, after removal indexes shift; this insertAt keeps intuitive placement
+    if (from < to) insertAt = to;
     tracks.splice(insertAt, 0, item);
 
-    // update currentIndex to the new index of the same playing track reference
     if (playingTrackRef) {
       const newIndex = tracks.indexOf(playingTrackRef);
       if (newIndex !== -1) currentIndex = newIndex;
       else currentIndex = -1;
     }
 
-    // regenerate shuffle order if shuffle active (so new ordering is reflected)
     if (shuffle) generateShuffleOrder();
 
     renderPlaylist();
-    // If audio is playing or paused with a set src, we should keep playing the same track (no src change)
-    // trackIndex and now playing UI will be updated by updateNowPlaying/renderPlaylist
     updateNowPlaying();
   }
 
@@ -914,8 +906,6 @@
   });
   closeUpdatesBtn.addEventListener('click', closeUpdates);
   updatesPanel.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeUpdates(); });
-
-  // NOTE: The rest of the player logic remains unchanged.
 
 </script>
 
