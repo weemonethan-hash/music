@@ -15,22 +15,47 @@
       --shadow: 0 8px 30px rgba(2,6,23,0.6);
       --radius: 12px;
       --sidebar-width: 320px;
+
+      /* size variables (can be changed via settings) */
+      --volume-width: 110px;
+      --volume-thumb-size: 16px;
+      --progress-height: 8px;
+      --control-size: 14px; /* base control text/font size */
+      --ui-density: 12px; /* gap / padding baseline */
     }
+
+    /* Light theme variables */
+    [data-theme="light"]{
+      --bg: #f6f9fb;
+      --card: #ffffff;
+      --accent: #2563eb;
+      --muted: #5b6770;
+      --glass: rgba(2,6,23,0.03);
+      --glass-2: rgba(2,6,23,0.02);
+      --shadow: 0 8px 30px rgba(2,6,23,0.06);
+      color-scheme: light;
+    }
+
+    /* High-contrast / sepia or other themes could be added similarly */
 
     *{box-sizing:border-box}
     body{
       margin:0;
       min-height:100vh;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      background: radial-gradient(1200px 600px at 10% 20%, #081426 0%, transparent 20%),
-                  radial-gradient(900px 400px at 90% 80%, #071324 0%, transparent 20%),
+      background: radial-gradient(1200px 600px at 10% 20%, rgba(8,20,38,0.9) 0%, transparent 20%),
+                  radial-gradient(900px 400px at 90% 80%, rgba(7,19,36,0.9) 0%, transparent 20%),
                   var(--bg);
-      color:#e6eef6;
+      color: #e6eef6;
       padding:28px;
       display:flex;
       align-items:center;
       justify-content:center;
     }
+
+    /* light-theme overrides on body text color */
+    [data-theme="light"] body, [data-theme="light"] .wrap { color: #0b1220; }
+    [data-theme="light"] .small { color: var(--muted); }
 
     .wrap{
       width:100%;
@@ -48,6 +73,12 @@
       box-shadow: var(--shadow);
       padding:18px;
       border: 1px solid rgba(255,255,255,0.03);
+    }
+
+    /* adapt card colors for light theme */
+    [data-theme="light"] .card {
+      background: linear-gradient(180deg, rgba(2,6,23,0.03), rgba(2,6,23,0.01));
+      border: 1px solid rgba(11,18,32,0.06);
     }
 
     /* left column - player */
@@ -131,6 +162,7 @@
       background:var(--glass); border:0; color:var(--muted); padding:10px; border-radius:10px; cursor:pointer;
       transition: all .14s ease;
       outline:none;
+      font-size: var(--control-size);
     }
     button.icon:hover{ transform: translateY(-4px); color:var(--accent); }
     button.icon:focus{ box-shadow: 0 0 0 3px rgba(110,231,183,0.12); }
@@ -148,7 +180,8 @@
       margin-top:8px;
     }
     .progress{
-      height:8px; background:var(--glass-2); flex:1; border-radius:99px; position:relative; cursor:pointer;
+      height: var(--progress-height);
+      background:var(--glass-2); flex:1; border-radius:99px; position:relative; cursor:pointer;
     }
     .progress .bar{
       height:100%; width:0%; background:linear-gradient(90deg,#60a5fa,#6ee7b7); border-radius:inherit;
@@ -160,10 +193,15 @@
       display:flex; align-items:center; gap:8px;
     }
     input[type=range]{
-      -webkit-appearance:none; height:6px; background:transparent; width:110px;
+      -webkit-appearance:none; height:6px; background:transparent; width:var(--volume-width);
     }
     input[type=range]::-webkit-slider-runnable-track{ height:6px; background:rgba(255,255,255,0.06); border-radius:6px; }
-    input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:linear-gradient(135deg,#fff,#cfe7ff); margin-top:-5px; box-shadow:0 3px 10px rgba(2,6,23,0.5); cursor:pointer; }
+    input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:var(--volume-thumb-size); height:var(--volume-thumb-size); border-radius:50%; background:linear-gradient(135deg,#fff,#cfe7ff); margin-top:-5px; box-shadow:0 3px 10px rgba(0,0,0,0.25); }
+    input[type=range]:focus{ outline:none; box-shadow:0 0 0 4px rgba(96,165,250,0.08); }
+
+    /* for Firefox */
+    input[type=range]::-moz-range-track { height:6px; background:rgba(255,255,255,0.06); border-radius:6px; }
+    input[type=range]::-moz-range-thumb { width:var(--volume-thumb-size); height:var(--volume-thumb-size); border-radius:50%; background:linear-gradient(135deg,#fff,#cfe7ff); border: none; }
 
     /* playlist */
     .playlist{
@@ -200,7 +238,6 @@
       height: 100vh;
       width: var(--sidebar-width);
       max-width: 92%;
-      /* fully opaque gradient for improved contrast (no transparency) */
       background: linear-gradient(180deg, #0b1220 0%, #071229 100%);
       border-left: 1px solid rgba(255,255,255,0.06);
       box-shadow: -10px 0 30px rgba(2,6,23,0.6);
@@ -236,11 +273,10 @@
       padding-right:6px;
       flex:1;
     }
-    /* Log items use a subtle contrasting card (opaque) for readability */
     .updates .log-item {
       padding:10px;
       border-radius:8px;
-      background: #081225; /* fully opaque darker card for each item */
+      background: #081225;
       border:1px solid rgba(255,255,255,0.02);
       color:var(--muted);
       font-size:13px;
@@ -269,7 +305,6 @@
     }
     .updates-tab:focus { box-shadow: 0 0 0 3px rgba(69,84,245,0.12); }
 
-    /* when sidebar open, hide tab slightly */
     .updates.open + .updates-tab { transform: translateY(-50%) translateX(var(--sidebar-width)); }
 
     @media (max-width:980px){
@@ -278,11 +313,45 @@
       .updates { width: 92%; transform: translateX(92%); }
       .updates.open + .updates-tab { transform: translateY(-50%) translateX(92%); }
     }
+
+    /* Settings panel (popover) */
+    .settingsBtn {
+      background: transparent;
+      border: 0;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 6px 8px;
+      border-radius: 8px;
+      outline: none;
+    }
+    .settingsBtn:hover { color: var(--accent); transform: translateY(-2px); }
+    .settingsPanel {
+      position: absolute;
+      right: 28px;
+      top: 28px;
+      width: 320px;
+      max-width: calc(100% - 56px);
+      background: var(--card);
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: 0 8px 30px rgba(2,6,23,0.5);
+      border: 1px solid rgba(255,255,255,0.04);
+      z-index: 20000;
+    }
+    .settingsRow { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 4px; }
+    .settingsRow label { font-size:13px; color:var(--muted); }
+    .hidden { display:none; }
+
+    /* compact density adjustments */
+    .density-compact .card { padding:10px; border-radius:8px; }
+    .density-compact .track { padding:8px; gap:8px; }
+    .density-compact .cover .art { width:160px; height:160px; font-size:16px; }
+
   </style>
 </head>
-<body>
+<body data-theme="dark">
   <div class="wrap" id="mainWrap">
-    <div class="card player">
+    <div class="card player" aria-live="polite">
       <div id="dropZone" class="drop" role="button" tabindex="0" aria-label="Upload folder of MP3s. Click or drop files here." title="Click to choose folder or drop files/folders here">
         <div class="icon" aria-hidden="true">MP3</div>
         <div>
@@ -331,17 +400,71 @@
         <div class="time" id="durationTime">0:00</div>
       </div>
 
-      <div class="help">This music player supports loading music from folders. Please ensure that your music files are legally obtained. The player does not permit or condone the use of illegal copies.</div>
+      <div class="help">This music player supports loading music from folders. Please ensure that your music files are legally obtained. The player does not permit or condone the use of illegal copies. Files are read locally — nothing is uploaded.</div>
 
       <audio id="audio" preload="metadata" style="display:none" crossorigin="anonymous"></audio>
     </div>
 
-    <div class="card" style="display:flex; flex-direction:column; gap:12px;">
+    <div class="card" style="display:flex; flex-direction:column; gap:12px; position:relative;">
       <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
-        <div style="font-weight:700">Playlist</div>
-        <div style="color:var(--muted); font-size:13px" id="folderName">No folder</div>
+        <div style="font-weight:700; display:flex; align-items:center; gap:12px;">
+          <span>Playlist</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div style="color:var(--muted); font-size:13px" id="folderName">No folder</div>
+          <button id="settingsBtn" class="settingsBtn" aria-haspopup="true" aria-expanded="false" title="Player settings">⚙️</button>
+        </div>
       </div>
+
       <div class="playlist" id="playlist" role="list" aria-label="Playlist"></div>
+    </div>
+  </div>
+
+  <!-- Settings panel (hidden by default) -->
+  <div id="settingsPanel" class="settingsPanel hidden" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+      <div id="settingsTitle" style="font-weight:700">Settings</div>
+      <button id="closeSettings" class="settingsBtn" aria-label="Close settings">✕</button>
+    </div>
+
+    <div style="margin-top:8px; display:flex; flex-direction:column; gap:8px;">
+      <div class="settingsRow">
+        <label for="themeSelect">Theme</label>
+        <select id="themeSelect" aria-label="Theme">
+          <option value="dark">Dark</option>
+          <option value="light">Light</option>
+          <option value="system">System</option>
+        </select>
+      </div>
+
+      <div class="settingsRow">
+        <label for="volumeSize">Volume control size</label>
+        <select id="volumeSize" aria-label="Volume control size">
+          <option value="small">Small</option>
+          <option value="medium" selected>Medium</option>
+          <option value="large">Large</option>
+        </select>
+      </div>
+
+      <div class="settingsRow">
+        <label for="progressSize">Progress bar height</label>
+        <select id="progressSize" aria-label="Progress bar height">
+          <option value="6">6px</option>
+          <option value="8" selected>8px</option>
+          <option value="12">12px</option>
+        </select>
+      </div>
+
+      <div class="settingsRow">
+        <label for="uiDensity">UI density</label>
+        <select id="uiDensity" aria-label="UI density">
+          <option value="comfortable" selected>Comfortable</option>
+          <option value="compact">Compact</option>
+        </select>
+      </div>
+
+      <div style="margin-top:6px; font-size:13px; color:var(--muted)">Changes are persisted locally in your browser.</div>
     </div>
   </div>
 
@@ -359,7 +482,7 @@
 <strong>UI updates</strong>
 - Collapsible update logs sidebar added (folds away to a vertical tab).
 - Accessibility improvements for toggle and focus states.
-- Placeholder entry visible here.
+- Settings panel added: theme, volume size, progress size, UI density.
       </div>
     </div>
   </aside>
@@ -397,6 +520,15 @@
   const logsList = document.getElementById('logsList');
   const defaultLog = document.getElementById('defaultLog');
 
+  // Settings elements
+  const settingsBtn = document.getElementById('settingsBtn');
+  const settingsPanel = document.getElementById('settingsPanel');
+  const closeSettings = document.getElementById('closeSettings');
+  const themeSelect = document.getElementById('themeSelect');
+  const volumeSize = document.getElementById('volumeSize');
+  const progressSize = document.getElementById('progressSize');
+  const uiDensity = document.getElementById('uiDensity');
+
   // State
   let tracks = []; // {file, name, displayName, url, duration, size, path}
   let currentIndex = -1;
@@ -419,55 +551,41 @@
     return parseFloat((bytes/Math.pow(k,i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  // Strip file extension (last ".ext") from filename for display
   function stripExtension(filename) {
     return filename.replace(/\.[^/.]+$/, '');
   }
 
-  // Small utility: escape HTML for titles
   function escapeHtml(str) {
     return String(str).replace(/[&<>"']/g, function(m) { return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]); });
   }
 
-  // Find an update file inside the provided File list.
-  // Looks for files located under a directory named 'github' (case-insensitive) and with extension .txt or .md.
-  // Prefer names like updates.txt, update.txt, changelog.txt, updates.md.
   function findUpdateFile(fileList) {
     if (!fileList || !fileList.length) return null;
     const preferNames = ['updates.txt','update.txt','changelog.txt','updates.md','CHANGELOG.md','updates'];
-    // Normalize file info: determine a path string to inspect (fullPath, webkitRelativePath, or name)
     const normalize = f => (f.fullPath || f.webkitRelativePath || f.name || '').replace(/\\/g, '/');
-    // Candidate list: those with 'github' directory in their path
     const candidates = fileList.filter(f => {
       const p = normalize(f).toLowerCase();
       return p.includes('/github/') || p.startsWith('github/') || p.includes('/.github/');
     });
-    // Also allow top-level file named updates if user places it directly under root with name "github-updates" — but spec asked for "github directory", so primary is above.
     const filtered = candidates.filter(f => {
       const name = (f.name || '').toLowerCase();
       return name.endsWith('.txt') || name.endsWith('.md') || preferNames.includes(name);
     });
     if (filtered.length === 0) return null;
-    // Prefer known filenames
     for (const n of preferNames) {
       const found = filtered.find(f => (f.name || '').toLowerCase() === n.toLowerCase());
       if (found) return found;
     }
-    // otherwise return first matching .txt/.md in github dir
     return filtered[0];
   }
 
-  // Read update file and inject into logs panel (keeps simple formatting)
   async function loadUpdateLogsFromFile(file) {
     if (!file) return;
     try {
       const text = await file.text();
-      // Clear default placeholder
       logsList.innerHTML = '';
-      // Split into sections by double newlines to create separate log-item blocks
       const sections = text.split(/\r?\n\r?\n/).filter(Boolean);
       if (sections.length === 0) {
-        // single empty file
         const node = document.createElement('div');
         node.className = 'log-item';
         node.textContent = '(update file was empty)';
@@ -477,11 +595,9 @@
       sections.forEach(sec => {
         const node = document.createElement('div');
         node.className = 'log-item';
-        // preserve newlines inside a section
         node.textContent = sec.trim();
         logsList.appendChild(node);
       });
-      // Indicate presence of custom logs by highlighting tab slightly
       updatesTab.style.background = 'linear-gradient(135deg,#60a5fa,#6ee7b7)';
       updatesTab.setAttribute('title', 'Update Logs (loaded from github/*.txt)');
       defaultLog && defaultLog.remove();
@@ -490,7 +606,6 @@
     }
   }
 
-  // Fallback: restore default placeholder logs
   function restoreDefaultLogs() {
     logsList.innerHTML = '';
     if (defaultLog) {
@@ -498,7 +613,7 @@
     } else {
       const node = document.createElement('div');
       node.className = 'log-item';
-      node.innerHTML = '<strong>UI updates</strong><div style="color:var(--muted); margin-top:6px; font-size:13px;">- Collapsible update logs sidebar added (folds away to a vertical tab).<br>- Accessibility improvements for toggle and focus states.<br>- Placeholder entry visible here.</div>';
+      node.innerHTML = '<strong>UI updates</strong><div style="color:var(--muted); margin-top:6px; font-size:13px;">- Collapsible update logs sidebar added (folds away to a vertical tab).<br>- Accessibility improvements for toggle and focus states.</div>';
       logsList.appendChild(node);
     }
     updatesTab.style.background = 'linear-gradient(135deg,#4654f5,#9be7c6)';
@@ -542,7 +657,6 @@
     handleFiles(filesList);
   });
 
-  // Traverse DataTransferItemList to gather files (recursively)
   function traverseDataTransferItems(items){
     const promises = [];
     for (let i = 0; i < items.length; i++) {
@@ -586,21 +700,16 @@
     });
   }
 
-  // Main file handling: looks for update file in github/ and then processes audio files
   function handleFiles(fileList){
-    // Keep original list for update-file discovery
     const raw = Array.from(fileList || []);
 
-    // Try to find update file in provided files (prefer files under github/ folder)
     const updateFile = findUpdateFile(raw);
     if (updateFile) {
       loadUpdateLogsFromFile(updateFile);
     } else {
-      // no custom file found: show default
       restoreDefaultLogs();
     }
 
-    // Filter to audio files only for playlist
     const candidates = raw.filter(f => {
       const name = f.name || '';
       return name.toLowerCase().endsWith('.mp3') || (f.type && f.type.startsWith('audio/'));
@@ -611,14 +720,12 @@
       return;
     }
 
-    // Sort by path/name so directories are grouped and stable
     candidates.sort((a,b) => {
       const pa = a.fullPath || a.webkitRelativePath || a.name;
       const pb = b.fullPath || b.webkitRelativePath || b.name;
       return pa.localeCompare(pb, undefined, {sensitivity:'base', numeric:true});
     });
 
-    // Map into track objects and create displayName (filename without extension)
     tracks = candidates.map(f => {
       const name = f.name;
       return {
@@ -636,7 +743,6 @@
     playlistEl.innerHTML = '';
     currentIndex = -1;
 
-    // Preload durations sequentially to reduce concurrent loads
     loadDurationsSequential(tracks).then(() => {
       renderPlaylist();
       playTrack(0);
@@ -711,11 +817,9 @@
         <div class="dur">${isFinite(t.duration) ? fmt(t.duration) : bytesToSize(t.size)}</div>
       `;
 
-      // Click / keyboard to play
       el.addEventListener('click', ()=> playTrack(idx));
       el.addEventListener('keydown', (e)=> { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); playTrack(idx); } });
 
-      // Drag events
       el.addEventListener('dragstart', (e) => {
         dragSrcIdx = idx;
         el.classList.add('dragging');
@@ -956,7 +1060,6 @@
     if (e.key.toLowerCase() === 'r') { repeatBtn.click(); }
   });
 
-  // Cleanup on page unload
   window.addEventListener('beforeunload', ()=> {
     if (currentObjectURL) {
       try{ URL.revokeObjectURL(currentObjectURL); } catch(e){}
@@ -964,7 +1067,6 @@
     }
   });
 
-  // Reflect play/pause state to UI for accessibility
   audio.addEventListener('play', ()=> { playPauseBtn.textContent = '⏸️'; playPauseBtn.setAttribute('aria-pressed','true'); });
   audio.addEventListener('pause', ()=> { playPauseBtn.textContent = '▶️'; playPauseBtn.setAttribute('aria-pressed','false'); });
 
@@ -996,31 +1098,173 @@
   closeUpdatesBtn.addEventListener('click', closeUpdates);
   updatesPanel.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeUpdates(); });
 
+  // Settings behavior and persistence
+  const STORAGE_KEY = 'mp3player_settings_v1';
+
+  function applySettings(settings) {
+    // theme: dark/light/system
+    if (!settings) settings = {};
+    const theme = settings.theme || 'dark';
+    applyTheme(theme);
+
+    // volume size
+    const vsize = settings.volumeSize || 'medium';
+    if (vsize === 'small') {
+      document.documentElement.style.setProperty('--volume-width', '80px');
+      document.documentElement.style.setProperty('--volume-thumb-size', '12px');
+    } else if (vsize === 'large') {
+      document.documentElement.style.setProperty('--volume-width', '160px');
+      document.documentElement.style.setProperty('--volume-thumb-size', '20px');
+    } else { // medium
+      document.documentElement.style.setProperty('--volume-width', '110px');
+      document.documentElement.style.setProperty('--volume-thumb-size', '16px');
+    }
+
+    // progress size
+    const psize = settings.progressSize || '8';
+    document.documentElement.style.setProperty('--progress-height', psize + 'px');
+
+    // UI density
+    const density = settings.uiDensity || 'comfortable';
+    if (density === 'compact') {
+      document.documentElement.classList.add('density-compact');
+    } else {
+      document.documentElement.classList.remove('density-compact');
+    }
+
+    // reflect controls
+    themeSelect.value = settings.theme || 'dark';
+    volumeSize.value = settings.volumeSize || 'medium';
+    progressSize.value = settings.progressSize || '8';
+    uiDensity.value = settings.uiDensity || 'comfortable';
+  }
+
+  function applyTheme(choice) {
+    if (choice === 'system') {
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.body.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+    } else {
+      document.body.setAttribute('data-theme', choice);
+      document.documentElement.setAttribute('data-theme', choice);
+    }
+  }
+
+  function loadSettings() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch (e) { return null; }
+  }
+
+  function saveSettings(s) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+    } catch (e) { /* ignore */ }
+  }
+
+  // open/close settings panel
+  settingsBtn.addEventListener('click', () => {
+    const open = !settingsPanel.classList.contains('hidden');
+    if (open) closeSettingsPanel();
+    else openSettingsPanel();
+  });
+  closeSettings.addEventListener('click', closeSettingsPanel);
+
+  function openSettingsPanel() {
+    settingsPanel.classList.remove('hidden');
+    settingsBtn.setAttribute('aria-expanded', 'true');
+    // position it near the settings button (basic)
+    settingsPanel.style.right = '28px';
+    settingsPanel.querySelector('select').focus();
+  }
+
+  function closeSettingsPanel() {
+    settingsPanel.classList.add('hidden');
+    settingsBtn.setAttribute('aria-expanded', 'false');
+    settingsBtn.focus();
+  }
+
+  // apply settings live when user changes a control
+  themeSelect.addEventListener('change', (e) => {
+    const val = e.target.value;
+    const s = loadSettings() || {};
+    s.theme = val;
+    applyTheme(val);
+    saveSettings(s);
+  });
+  volumeSize.addEventListener('change', (e) => {
+    const val = e.target.value;
+    const s = loadSettings() || {};
+    s.volumeSize = val;
+    applySettings(s); // will update CSS vars and UI controls
+    saveSettings(s);
+  });
+  progressSize.addEventListener('change', (e) => {
+    const val = e.target.value;
+    const s = loadSettings() || {};
+    s.progressSize = val;
+    applySettings(s);
+    saveSettings(s);
+  });
+  uiDensity.addEventListener('change', (e) => {
+    const val = e.target.value;
+    const s = loadSettings() || {};
+    s.uiDensity = val;
+    applySettings(s);
+    saveSettings(s);
+  });
+
+  // Initial settings load
+  const initialSettings = loadSettings() || { theme: 'dark', volumeSize: 'medium', progressSize: '8', uiDensity: 'comfortable' };
+  applySettings(initialSettings);
+
+  // Resize handling for 'system' theme changes
+  if (window.matchMedia) {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+      const s = loadSettings();
+      if (s && s.theme === 'system') applyTheme('system');
+    });
+  }
+
   // On load, ensure default logs are present
   restoreDefaultLogs();
 
-  // Expose function to manually set logs from an external text file (for testing)
-  window._loadUpdateLogsFromFile = loadUpdateLogsFromFile;
+  // Ensure the settings panel closes when ESC pressed and toggles accessible focus
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (!settingsPanel.classList.contains('hidden')) closeSettingsPanel();
+      if (updatesPanel.classList.contains('open')) closeUpdates();
+    }
+  });
 
+  // Accessibility: trap focus inside settings when open (basic)
+  settingsPanel.addEventListener('keydown', (e) => {
+    if (e.key === 'Tab') {
+      const focusable = settingsPanel.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey) {
+        if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+      } else {
+        if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    }
+  });
+
+  // expose a small helper to programmatically set volume control size (for other UI extension)
+  window.mp3player = {
+    setVolumeControlSize: (size) => {
+      const s = loadSettings() || {};
+      s.volumeSize = size;
+      applySettings(s);
+      saveSettings(s);
+    }
+  };
+
+  // done: settings + volume/progress size + theme support
 </script>
-
-<!-- Bottom left button -->
-<a href="https://snowrunnermods.fr/" target="_blank" rel="noopener" style="
-  position: fixed;
-  left: 24px;
-  bottom: 24px;
-  background: linear-gradient(135deg, #4654f5, #9be7c6);
-  color: #062;
-  font-weight: bold;
-  padding: 14px 26px;
-  border-radius: 12px;
-  box-shadow: 0 6px 16px rgba(69,84,245,0.18);
-  text-decoration: none;
-  font-size: 17px;
-  z-index: 9999;
-">
-  use at own risk
-</a>
-
 </body>
 </html>
